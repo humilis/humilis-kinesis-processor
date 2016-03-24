@@ -1,0 +1,14 @@
+---
+outputs:
+    LambdaFunctionArn:
+        Description: The ARN of the Lambda processor for the raw events pipeline
+        Value:
+            "Fn::GetAtt":
+                - LambdaFunction
+                - Arn
+    LambdaExecutionRoleArn:
+        Description: The ARN of the Lambda execution role
+        Value:
+            "Fn::GetAtt":
+                - LambdaExecutionRole
+                - Arn

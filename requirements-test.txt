@@ -1,0 +1,19 @@
+# test requirements
+boto3
+pytest
+pytest-cov
+tox
+
+user-agents
+
+# We need humilis for deployment and also for the integration test suite
+-e git+https://github.com/Innovativetravel/humilis#egg=humilis
+
+# We need to install the layer in order to deploy it and test it
+-e .
+
+# We also need these layers
+-e git+https://github.com/Innovativetravel/humilis-streams#egg=humilis-streams
+-e git+https://github.com/Innovativetravel/humilis-filter-session#egg=humilis-filter-session
+-e git+https://github.com/Innovativetravel/humilis-secrets-vault#egg=humilis-secrets-vault
+

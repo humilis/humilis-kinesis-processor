@@ -1,0 +1,78 @@
+---
+# Hyperparameters to this layer:
+#
+# input, output, error
+# input_delivery, output_delivery, error_delivery
+meta:
+    description:
+        Runs a list of python callables over given kinesis event stream
+    {% if dependencies %}
+    dependencies:
+        # Needed if the Lambda delivers to S3
+        {% for d in dependencies %}
+        - {{d}}
+        {% endfor %}
+    {% endif %}
+    parameters:
+        lambda_dependencies:
+            description:
+                List of python package dependencies for the lambda function
+            value:
+        callables:
+            description:
+                List of callables in dot-notation to call for every event in an input stream
+            value:
+        batch_size:
+            description:
+                The number of events to batch in one lambda execution
+            value: 1
+        {% set streams={"input": input, "output": output, "error": error} %}
+        {% set delivery={"input": input_delivery, "output": output_delivery, "error": error_delivery} %}
+        {% for io in ["input", "output", "error"] %}
+        {% if streams[io] %}
+        {{io}}_stream:
+            description:
+                The Physical IDs of the {{io}} Kinesis stream
+            value:
+                name:
+                    ref:
+                        parser: output
+                        parameters:
+                            layer_name: {{streams[io].layer}}
+                            output_name: {{streams[io].stream}}
+                arn:
+                    ref:
+                        parser: output
+                        parameters:
+                            layer_name: {{streams[io].layer}}
+                            output_name: {{streams[io].stream}}Arn
+        {% endif %}
+        {% if delivery[io] %}
+        {{io}}_delivery_stream:
+            description:
+                The Physical IDs of the {{io}} S3 delivery stream
+            value:
+                name:
+                    ref:
+                        parser: output
+                        parameters:
+                            layer_name: {{delivery[io].layer}}
+                            output_name: {{delivery[io].stream}}
+                arn:
+                    ref:
+                        parser: output
+                        parameters:
+                            layer_name: {{delivery[io].layer}}
+                            output_name: {{delivery[io].stream}}Arn
+        {% endif %}
+        {% endfor %}
+        lambda_function:
+            # We use a low priority so that the references above that retrieve
+            # the names of the relevant streams are resolved before this
+            # reference.
+            priority: 100
+            value:
+                ref:
+                    parser: lambda
+                    parameters:
+                        path: lambda_function

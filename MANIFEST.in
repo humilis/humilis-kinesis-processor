@@ -1,0 +1,5 @@
+include *.rst
+include setup.py
+include requirements-testing.txt
+include tox.ini
+recursive-include pytest_splinter/profiles *
