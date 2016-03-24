@@ -2,7 +2,7 @@ User agent parser for event streams
 ===================================
 
 .. |Build Status| image:: https://travis-ci.org/humilis/humilis-kinesis-mapper.svg?branch=master
-   :target: https://travis-ci.org/InnovativeTravel/humilis-kinesis-mapper
+   :target: https://travis-ci.org/humilis/humilis-kinesis-mapper
 .. |PyPI| image:: https://img.shields.io/pypi/v/humilis-kinesis-mapper.svg?style=flat
    :target: https://pypi.python.org/pypi/humilis-kinesis-mapper
 
