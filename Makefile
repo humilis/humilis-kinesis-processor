@@ -19,7 +19,8 @@ test: .env
 	$(TOX) -e unit
 
 # run integration tests (require deployment)
-testi: develop
+testi: .env
+	$(PIP) install tox
 	$(TOX) -e integration
 
 # remove .tox and .env dirs
