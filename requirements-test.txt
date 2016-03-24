@@ -17,3 +17,4 @@ user-agents
 -e git+https://github.com/Innovativetravel/humilis-filter-session#egg=humilis-filter-session
 -e git+https://github.com/Innovativetravel/humilis-secrets-vault#egg=humilis-secrets-vault
 
+werkzeug

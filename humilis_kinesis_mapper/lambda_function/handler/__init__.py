@@ -3,16 +3,18 @@ from .processor.main import process_event
 import lambdautils.utils as utils
 from werkzeug.utils import import_string  # NOQA
 
-globs = dict(import_string=import_string)
+globs = dict(import_string=import_string, callables=[])
 
 # preprocessor:jinja2
-exec(
-    """callables = [
-    {% for name in callables %}
-        import_string("{{name}}"),
-    {% endfor %}
-]""", globs)
-
+try:
+    exec(
+        """callables = [
+        {% for name in callables %}
+            import_string("{{name}}"),
+        {% endfor %}
+    ]""", globs)
+except SyntaxError:
+    pass
 callables = globs['callables']
 
 
