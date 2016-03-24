@@ -22,7 +22,7 @@ def get_all_records(client, si, limit, timeout=10):
 
 
 def test_io_streams_put_get_record(kinesis, io_stream_names, shard_iterators,
-                                   payloads):
+                                   payloads, events):
     """Put and read a record from the input stream."""
     input_stream, output_stream, _ = io_stream_names
 
@@ -48,4 +48,4 @@ def test_io_streams_put_get_record(kinesis, io_stream_names, shard_iterators,
     retrieved_ids = {x["id"] for x in retrieved_events}
     put_ids = {json.loads(x)['id'] for x in payloads}
     assert not retrieved_ids.difference(put_ids)
-    assert all(x["browser_version"] == "4.0.4" for x in retrieved_events)
+    assert retrieved_events == events
