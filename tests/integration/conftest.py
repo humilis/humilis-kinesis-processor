@@ -22,7 +22,7 @@ def settings():
 def environment(settings):
     """The lambda-processor-test humilis environment."""
     env = Environment(settings.environment_path, stage=settings.stage)
-    env.create()
+    env.create(update=True)
     return env
 
 

@@ -1,7 +1,7 @@
 """Test the logic of the Lambda function."""
 from mock import Mock
 
-from humilis_kinesis_mapper.lambda_function.processor.main import process_event
+from humilis_kinesis_mapper.lambda_function.handler.processor.main import process_event
 
 
 def test_process_event(kinesis_event, event, context, boto3_client, monkeypatch):

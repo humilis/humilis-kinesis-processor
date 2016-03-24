@@ -14,7 +14,7 @@ setup(
         "raven",
         "lambdautils",
         "werkzeug",
-        {% for dep in dependencies %}
+        {% for dep in lambda_dependencies %}
         "{{ dep }}",
         {% endfor %}
     ],
