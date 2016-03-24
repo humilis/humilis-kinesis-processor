@@ -11,7 +11,7 @@ resources:
         Description: "{{_layer.description}}"
         {# in seconds #}
         Timeout: 100
-        Handler: "handler.main.lambda_handler"
+        Handler: "handler.lambda_handler"
         Role:
           "Fn::GetAtt":
               - LambdaExecutionRole
