@@ -3,6 +3,7 @@ boto3
 pytest
 pytest-cov
 tox
+mock
 
 user-agents
 

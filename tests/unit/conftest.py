@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import codecs
 
 import json
-from unittest.mock import Mock
+from mock import Mock
 import uuid
 
 import pytest
