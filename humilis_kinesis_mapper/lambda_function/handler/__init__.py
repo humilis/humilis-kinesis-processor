@@ -1,7 +1,7 @@
 """Lambda function entry point."""
 from .processor.main import process_event
 import lambdautils.utils as utils
-from werzeug.utils import import_string
+from werkzeug.utils import import_string
 
 # preprocessor:jinja2
 callables = [
