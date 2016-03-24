@@ -1,14 +1,19 @@
 """Lambda function entry point."""
 from .processor.main import process_event
 import lambdautils.utils as utils
-from werkzeug.utils import import_string
+from werkzeug.utils import import_string  # NOQA
+
+globs = dict(import_string=import_string)
 
 # preprocessor:jinja2
-callables = [
+exec(
+    """callables = [
     {% for name in callables %}
         import_string("{{name}}"),
     {% endfor %}
-]
+]""", globs)
+
+callables = globs['callables']
 
 
 @utils.sentry_monitor(
