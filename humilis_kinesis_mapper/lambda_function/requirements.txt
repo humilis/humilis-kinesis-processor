@@ -1,0 +1,5 @@
+# preprocessor:jinja2
+.
+{% for dep in lambda_dependencies %}
+{{ dep }}
+{% endfor %}
