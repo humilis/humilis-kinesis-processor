@@ -14,9 +14,6 @@ setup(
         "raven",
         "lambdautils",
         "werkzeug",
-        {% for dep in lambda_dependencies %}
-        "{{ dep }}",
-        {% endfor %}
     ],
     classifiers=[
         "Programming Language :: Python :: 2.7"],
