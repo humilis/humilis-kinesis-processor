@@ -19,7 +19,7 @@ test: .env
 	$(TOX) -e unit
 
 # run integration tests (require deployment)
-testi: .env
+testi: .env update
 	$(PIP) install tox
 	$(TOX) -e integration
 
