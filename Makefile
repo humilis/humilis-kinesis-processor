@@ -27,14 +27,21 @@ testi: .env
 clean:
 	rm -rf .env .tox
 
-# deploy the test environment
-create: develop
-	$(HUMILIS) create --stage $(STAGE) $(HUMILIS_ENV).yaml.j2
+# deploy secrets to the environment secrets vault
+secrets:
 	$(PYTHON) scripts/deploy-secrets.py $(HUMILIS_ENV).yaml.j2 $(STAGE)
+
+# deploy the test environment
+create: develop secrets
+	$(HUMILIS) create \
+	  --stage $(STAGE) \
+	  --output $(HUMILIS_ENV)-$(STAGE).outputs.yaml $(HUMILIS_ENV).yaml.j2
 
 # update the test deployment
 update: develop
-	$(HUMILIS) update --stage $(STAGE) $(HUMILIS_ENV).yaml.j2
+	$(HUMILIS) update \
+	  --stage $(STAGE) \
+	  --output $(HUMILIS_ENV)-$(STAGE).outputs.yaml $(HUMILIS_ENV).yaml.j2
 	$(PYTHON) scripts/deploy-secrets.py $(HUMILIS_ENV).yaml.j2 $(STAGE)
 
 # delete the test deployment

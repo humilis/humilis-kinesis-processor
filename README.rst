@@ -1,4 +1,4 @@
-User agent parser for event streams
+Kinesis event stream mapper
 ===================================
 
 .. |Build Status| image:: https://travis-ci.org/humilis/humilis-kinesis-mapper.svg?branch=master
@@ -10,9 +10,8 @@ User agent parser for event streams
 
 A `humilis <https://github.com/humilis/humilis>`__ plugin to deploy a
 `Lambda <https://aws.amazon.com/documentation/lambda/>`__ function that
-parses [user agents][ua] in a
-`Kinesis <https://aws.amazon.com/documentation/kinesis/>`__ event
-stream.
+maps events in a `Kinesis <https://aws.amazon.com/documentation/kinesis/>`__
+event stream using a user-defined list of Python callables.
 
 Installation
 ------------
@@ -71,7 +70,6 @@ More information
 
 See `humilis <https://github.com/humilis/humilis>`__ documentation.
 
-`humilis <https://github.com/humilis/humilis>`__
 
 Contact
 -------

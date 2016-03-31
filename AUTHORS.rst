@@ -6,4 +6,4 @@ Authors
     
 These people have contributed to `humilis-kinesis-mapper`, in alphabetical order:
 
-* `German Gomez-Herrero <g@germangh.com>`_
+* `German Gomez-Herrero <german.gomezherrero@gmail.com>`_

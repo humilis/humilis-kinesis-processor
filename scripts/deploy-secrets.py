@@ -11,7 +11,7 @@ import keyring
 
 
 # The namespace in the local keyring
-NAMESPACE = "humilis:map-uaparse:{stage}"
+NAMESPACE = "humilis-kinesis-mapper:{stage}"
 
 # Map local secret keys to secret keys in the event tracker vault
 SECRETS = {"sentry.dsn": "sentry.dsn"}
