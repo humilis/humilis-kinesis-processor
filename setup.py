@@ -28,7 +28,7 @@ setup(
     description="Humilis kinesis stream mapper plugin",
     long_description=long_description,
     install_requires=[
-        "humilis>=0.3.0",
+        "humilis>=0.4.1",
         "lambdautils"],
     classifiers=[
         "Programming Language :: Python :: 3",
