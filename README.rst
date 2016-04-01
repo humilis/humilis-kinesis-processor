@@ -11,7 +11,7 @@ Kinesis event stream mapper
 A `humilis <https://github.com/humilis/humilis>`__ plugin to deploy a
 `Lambda <https://aws.amazon.com/documentation/lambda/>`__ function that
 maps events in a `Kinesis <https://aws.amazon.com/documentation/kinesis/>`__
-event stream using a user-defined list of Python callables.
+event stream using a list of Python callables.
 
 Installation
 ------------
