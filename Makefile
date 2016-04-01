@@ -11,7 +11,7 @@ HUMILIS_ENV := tests/integration/humilis-kinesis-mapper
 
 # install dev dependencies, create layers directory
 develop: .env
-	$(PIP) install -r requirements-dev.txt
+	$(PIP) install -r requirements-test.txt
 
 # run unit tests
 test: .env

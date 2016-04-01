@@ -1,6 +1,0 @@
-# dev utilities
-ipython
-ipdb
-pdbpp
-
--r requirements-test.txt
