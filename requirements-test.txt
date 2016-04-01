@@ -19,3 +19,6 @@ user-agents
 -e git+https://github.com/Innovativetravel/humilis-secrets-vault#egg=humilis-secrets-vault
 
 werkzeug
+
+# Install non-recommended keyring backends
+keyrings.alt
