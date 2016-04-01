@@ -29,8 +29,9 @@ def deploy_secrets(environment_file, stage="dev"):
             os.environ.get("SENTRY_DSN")
 
         if value is None:
-            print("Secret {}/{} not found in local keychain: skipping".format(
-                keychain_namespace, local_key))
+            print("Secret {}/{} not found in local keychain nor SENTRY_DSN "
+                  "environment variable: skipping".format(keychain_namespace,
+                                                          local_key))
         else:
             resp = env.set_secret(vault_key, value)
             status = resp['ResponseMetadata']['HTTPStatusCode']
