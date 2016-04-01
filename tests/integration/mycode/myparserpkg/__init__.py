@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-
+"""A sample Python package to test the layer."""
 
 from user_agents import parse
 

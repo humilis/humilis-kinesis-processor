@@ -23,6 +23,10 @@ meta:
             description:
                 The number of events to batch in one lambda execution
             value: 1
+        lambda_dependencies:
+            description:
+                A list of Python dependencies for the Lambda function
+            value: []
         {% set streams={"input": input, "output": output, "error": error} %}
         {% set delivery={"input": input_delivery, "output": output_delivery, "error": error_delivery} %}
         {% for io in ["input", "output", "error"] %}
