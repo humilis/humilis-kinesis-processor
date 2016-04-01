@@ -31,18 +31,23 @@ clean:
 secrets:
 	$(PYTHON) scripts/deploy-secrets.py $(HUMILIS_ENV).yaml.j2 $(STAGE)
 
-# deploy the test environment
-create: develop secrets
+# create CF stacks
+create-cf: develop
 	$(HUMILIS) create \
 	  --stage $(STAGE) \
 	  --output $(HUMILIS_ENV)-$(STAGE).outputs.yaml $(HUMILIS_ENV).yaml.j2
 
-# update the test deployment
-update: develop
+# deploy the test environment
+create: create-cf secrets
+
+# update CF stacks
+update-cf: develop
 	$(HUMILIS) update \
 	  --stage $(STAGE) \
 	  --output $(HUMILIS_ENV)-$(STAGE).outputs.yaml $(HUMILIS_ENV).yaml.j2
-	$(PYTHON) scripts/deploy-secrets.py $(HUMILIS_ENV).yaml.j2 $(STAGE)
+
+# update the test deployment
+update: update-cf secrets
 
 # delete the test deployment
 delete: develop
