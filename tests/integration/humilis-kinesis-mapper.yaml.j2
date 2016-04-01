@@ -22,7 +22,6 @@ humilis-kinesis-mapper:
           lambda_dependencies:
             - user-agents
             - mycode/myparserpkg
-            - mycode/myuuidmodule.py
           callables:
             - myparserpkg.__init__:parse_ua
             - myuuidmodule:add_uuid

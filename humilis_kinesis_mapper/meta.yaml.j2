@@ -63,6 +63,10 @@ meta:
                             output_name: {{delivery[io].stream}}Arn
         {% endif %}
         {% endfor %}
+        lambda_dependencies:
+            description:
+                A list of pip-installable Lambda dependencies
+            value: []
         lambda_function:
             # We use a low priority so that the references above that retrieve
             # the names of the relevant streams are resolved before this
@@ -73,4 +77,3 @@ meta:
                     parser: lambda
                     parameters:
                         path: lambda_function
-                        dependencies: {{lambda_dependencies}}
