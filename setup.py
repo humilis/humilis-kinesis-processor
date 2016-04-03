@@ -21,7 +21,7 @@ setup(
     version=__version__,
     author="Anatoly Bubenkov, FindHotel and others",
     author_email="developers@innovativetravel.eu",
-    url="http://github.com/InnovativeTravel/humilis-kinesis-mapper",
+    url="http://github.com/humilis/humilis-kinesis-mapper",
     license="MIT",
     description="Humilis kinesis stream mapper plugin",
     long_description=long_description,
