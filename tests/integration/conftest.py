@@ -1,6 +1,7 @@
 """Global conftest."""
 import pytest
 from collections import namedtuple
+import os
 import time
 
 import boto3
@@ -22,7 +23,6 @@ def settings():
 def environment(settings):
     """The lambda-processor-test humilis environment."""
     env = Environment(settings.environment_path, stage=settings.stage)
-    env.create(update=True)
     return env
 
 
@@ -39,7 +39,8 @@ def io_stream_names(settings, environment):
 @pytest.fixture(scope="session")
 def kinesis():
     """Boto3 kinesis client."""
-    return boto3.client("kinesis")
+    region = os.environ.get("AWS_REGION") or "eu-west-1"
+    return boto3.client("kinesis", region_name=region)
 
 
 @pytest.fixture(scope="function")

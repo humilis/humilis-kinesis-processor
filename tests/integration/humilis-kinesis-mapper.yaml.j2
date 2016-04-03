@@ -16,13 +16,14 @@ humilis-kinesis-mapper:
               - name: ErrorStream
                 shard_count: 1
 
-        # Parses user agents
+        # Parses user agents and adds a random UUID field
         - layer: kinesis-mapper
           layer_type: kinesis-mapper
           lambda_dependencies:
-            - timeout_decorator
+            - user-agents
+            - mycode/myparserpkg
           callables:
-            - timeout_decorator.timeout_decorator:timeout
+            - myparserpkg.__init__:parse_ua
           input: {layer: streams, stream: InputStream}
           output: {layer: streams, stream: OutputStream}
           error: {layer: streams, stream: ErrorStream}

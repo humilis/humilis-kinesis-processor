@@ -3,6 +3,7 @@
 #
 # input, output, error
 # input_delivery, output_delivery, error_delivery
+# lambda_dependencies
 meta:
     description:
         Runs a list of python callables over given kinesis event stream
@@ -14,18 +15,18 @@ meta:
         {% endfor %}
     {% endif %}
     parameters:
-        lambda_dependencies:
-            description:
-                List of python package dependencies for the lambda function
-            value:
         callables:
             description:
                 List of callables in dot-notation to call for every event in an input stream
-            value:
+            value: []
         batch_size:
             description:
                 The number of events to batch in one lambda execution
             value: 1
+        lambda_dependencies:
+            description:
+                A list of Python dependencies for the Lambda function
+            value: []
         {% set streams={"input": input, "output": output, "error": error} %}
         {% set delivery={"input": input_delivery, "output": output_delivery, "error": error_delivery} %}
         {% for io in ["input", "output", "error"] %}
@@ -76,3 +77,4 @@ meta:
                     parser: lambda
                     parameters:
                         path: lambda_function
+                        dependencies: {{lambda_dependencies or []}}

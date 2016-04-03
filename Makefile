@@ -7,11 +7,11 @@ HUMILIS_ENV := tests/integration/humilis-kinesis-mapper
 
 # create virtual environment
 .env:
-	virtualenv .env -p python3
+	virtualenv .env -p python3.4
 
 # install dev dependencies, create layers directory
 develop: .env
-	$(PIP) install -r requirements-dev.txt
+	$(PIP) install -r requirements-test.txt
 
 # run unit tests
 test: .env
@@ -19,7 +19,7 @@ test: .env
 	$(TOX) -e unit
 
 # run integration tests (require deployment)
-testi: .env
+testi: .env update
 	$(PIP) install tox
 	$(TOX) -e integration
 
@@ -27,15 +27,27 @@ testi: .env
 clean:
 	rm -rf .env .tox
 
-# deploy the test environment
-create: develop
-	$(HUMILIS) create --stage $(STAGE) $(HUMILIS_ENV).yaml.j2
+# deploy secrets to the environment secrets vault
+secrets:
 	$(PYTHON) scripts/deploy-secrets.py $(HUMILIS_ENV).yaml.j2 $(STAGE)
 
+# create CF stacks
+create-cf: develop
+	$(HUMILIS) create \
+	  --stage $(STAGE) \
+	  --output $(HUMILIS_ENV)-$(STAGE).outputs.yaml $(HUMILIS_ENV).yaml.j2
+
+# deploy the test environment
+create: create-cf secrets
+
+# update CF stacks
+update-cf: develop
+	$(HUMILIS) update \
+	  --stage $(STAGE) \
+	  --output $(HUMILIS_ENV)-$(STAGE).outputs.yaml $(HUMILIS_ENV).yaml.j2
+
 # update the test deployment
-update: develop
-	$(HUMILIS) update --stage $(STAGE) $(HUMILIS_ENV).yaml.j2
-	$(PYTHON) scripts/deploy-secrets.py $(HUMILIS_ENV).yaml.j2 $(STAGE)
+update: update-cf secrets
 
 # delete the test deployment
 delete: develop
