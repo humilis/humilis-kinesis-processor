@@ -17,9 +17,7 @@ long_description = (
 setup(
     name="humilis-kinesis-mapper",
     include_package_data=True,
-    package_data={
-        "": ["*.j2", "*.yaml"]},
-    packages=find_packages(),
+    packages=find_packages(include=['humilis_kinesis_mapper', 'humilis_kinesis_mapper.*']),
     version=__version__,
     author="Anatoly Bubenkov, FindHotel and others",
     author_email="developers@innovativetravel.eu",
