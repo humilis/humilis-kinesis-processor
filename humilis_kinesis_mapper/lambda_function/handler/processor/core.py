@@ -1,20 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import json
-import logging
-
 # preprocessor:jinja2
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
 
+def transform_events(events, callables, environment, layer, stage, shard_id):
+    """Transforms events with the given callables."""
 
-def transform_events(events, callables):
-    """Parses the user agents."""
     for event in events:
-        logger.info("Input event: {}".format(json.dumps(event, indent=4)))
         for cal in callables:
-            cal(event)
-        logger.info("Mapped event: {}".format(json.dumps(event, indent=4)))
+            cal(event, environment=environment, layer=layer, stage=stage,
+                shard_id=shard_id)
 
     return events
