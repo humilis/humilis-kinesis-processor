@@ -24,14 +24,12 @@ def events(request):
 @pytest.fixture(scope="session", params=[1, 10])
 def bad_events(request):
     """A batch of bad events to be sent to Kinesis."""
-    # Having a missing timestamp is a critical error: these events should be
-    # sent to the error stream
     return ["I am bad!" for _ in range(request.param)]
 
 
 @pytest.fixture(scope="session")
 def payloads(events):
-    """A base 64 encoded data record."""
+    """A list of json-serialized kinesis payloads."""
     payloads = []
     for kr in events:
         record = json.dumps(kr)
@@ -42,7 +40,7 @@ def payloads(events):
 
 @pytest.fixture(scope="session")
 def bad_payloads(bad_events):
-    """A base 64 encoded data record."""
+    """A list of json-serialized bad payloads."""
     payloads = []
     for kr in bad_events:
         record = json.dumps(kr)

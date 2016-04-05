@@ -1,6 +1,22 @@
 ---
+# Find out if there are output (delivery) streams
+{% set globs={'has_output_stream': False, 'has_output_delivery': False} %}
+{% for s in meta_output %}
+{% if s.kinesis_stream %}
+{% set _ = globs.update({'has_output_stream': True}) %}
+{% endif %}
+{% if s.firehose_delivery_stream %}
+{% set _ = globs.update({'has_output_delivery': True}) %}
+{% endif %}
+{% endfor %}
+# Do we need a DynamoDB table to store state info?
+{% if dynamodb_capacity.read|int or dynamodb_capacity.write|int %}
+{% set _ = globs.update({'stateful': False}) %}
+{% else %}
+{% set _ = globs.update({'stateful': True}) %}
+{% endif %}
 resources:
-    {# The lambda function #}
+    # The lambda function
     LambdaFunction:
       Type: "AWS::Lambda::Function"
       Properties:
@@ -16,7 +32,7 @@ resources:
           "Fn::GetAtt":
               - LambdaExecutionRole
               - Arn
-    {# The role associated to the Lambda function that processes raw events #}
+    # The role associated to the Lambda function that processes raw events
     LambdaExecutionRole:
       Type: "AWS::IAM::Role"
       Properties:
@@ -27,7 +43,7 @@ resources:
               Principal:
                   Service: 'lambda.amazonaws.com'
               Action: 'sts:AssumeRole'
-        {# Keep all environment role under the same path #}
+        # Keep all environment role under the same path
         Path: {{ "/{}/".format(_env.name) }}
         Policies:
           - PolicyName: root
@@ -35,79 +51,91 @@ resources:
               Version: "2012-10-17"
               Statement:
                 - Effect: Allow
-                  {# Write access to Cloudwatch logs #}
+                  # Write access to Cloudwatch logs
                   Action:
                     - "logs:CreateLogGroup"
                     - "logs:CreateLogStream"
                     - "logs:PutLogEvents"
                   Resource: "arn:aws:logs:*:*:*"
-                {% if output_delivery_stream or input_delivery_stream or error_delivery_stream %}
+                {% if meta_input.firehose_delivery_stream or meta_error.firehose_delivery_stream or globs.has_delivery_stream %}
                 - Effect: Allow
-                  {# Write access to the Firehose delivery stream(s) #}
+                  # Write access to the Firehose delivery stream(s)
                   Action:
                     - "firehose:PutRecord"
                     - "firehose:PutRecordBatch"
                     - "firehose:ListDeliveryStreams"
                     - "firehose:DescribeDeliveryStream"
                   Resource:
-                    {% if output_delivery_stream %}
-                    - {{output_delivery_stream.arn}}
+                    {% if meta_input.firehose_delivery_stream %}
+                    - {{meta_input.firehose_delivery_stream_arn}}
                     {% endif %}
-                    {% if input_delivery_stream %}
-                    - {{input_delivery_stream.arn}}
+                    {% if meta_error.firehose_delivery_stream %}
+                    - {{meta_error.firehose_delivery_stream_arn}}
                     {% endif %}
-                    {% if error_delivery_stream %}
-                    - {{error_delivery_stream.arn}}
+                    {% for os in meta_output %}
+                    {% if os.firehose_delivery_stream %}
+                    - {{ os.firehose_delivery_stream_arn }}
                     {% endif %}
+                    {% endfor %}
                 {% endif %}
                 - Effect: Allow
-                  {# Permission to list and describe I/O streams #}
+                  # Permission to list and describe all streams
                   Action:
                     - "kinesis:DescribeStream"
                     - "kinesis:ListStreams"
                   Resource: "*"
                 - Effect: Allow
-                  {# Permissions to read from the input stream #}
+                  # Permissions to read from the input stream
                   Action:
                     - "kinesis:GetRecords"
                     - "kinesis:GetShardIterator"
-                  Resource: {{ input_stream.arn }}
-                  {% if output_stream or error_stream %}
+                  Resource: {{ meta_input.kinesis_stream_arn }}
+                  {% if has_output_stream or meta_error.kinesis_stream_arn %}
                 - Effect: Allow
-                  {# Permissions to write to output stream #}
+                  # Permissions to write to error and output streams
                   Action:
                     - "kinesis:PutRecords"
                   Resource:
-                    {% if output_stream %}
-                    - {{output_stream.arn}}
+                    {% for os in meta_output %}
+                    {% if os.kinesis_stream_arn %}
+                    - {{ os.kinesis_stream_arn}}
                     {% endif %}
-                    {% if error_stream %}
-                    - {{error_stream.arn}}
+                    {% endfor %}
+                    {% if meta_error.kinesis_stream_arn %}
+                    - {{meta_error.kinesis_stream_arn}}
                     {% endif %}
                   {% endif %}
                 - Effect: Allow
-                  {# Permissions to access the DynamoDB secrets table #}
+                  # Permissions to access the DynamoDB secrets table
                   Action:
                     - "dynamodb:GetItem"
                   Resource: "*"
+                  {% if globs.stateful %}
                 - Effect: Allow
+                  # Read/write permission on the associated state tables
                   Action:
                     - "dynamodb:*"
                   Resource:
                     - "Fn::Join":
                       - ""
                       - ["arn:aws:dynamodb:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "table/", {"Ref": "StateTable"}]
+                 {% endif %}
     InputEventSourceMapping:
       Type: "AWS::Lambda::EventSourceMapping"
       Properties:
         BatchSize: {{ batch_size }}
-        {# The ARN of the input Kinesis stream #}
-        EventSourceArn: {{ input_stream.arn }}
+        # The ARN of the input Kinesis stream
+        EventSourceArn: {{ meta_input.kinesis_stream_arn }}
         FunctionName:
           Ref: LambdaFunction
         StartingPosition:
           TRIM_HORIZON
-    {# The DynamoDB table that keeps state information #}
+    # The DynamoDB tables that keep shard-specific state information
+    #
+    # We use the same state table across shards. The lambdautils functions
+    # set_state and get_state take care of concurrent access to the state table
+    # across shards by storing each shard state in a different namespace.
+    {% if stateful %}
     StateTable:
       Type: "AWS::DynamoDB::Table"
       Properties:
@@ -119,10 +147,11 @@ resources:
           - AttributeName: id
             KeyType: HASH
         ProvisionedThroughput:
-          ReadCapacityUnits: 50
-          WriteCapacityUnits: 50
+          ReadCapacityUnits: {{dynamodb_capacity.read}}
+          WriteCapacityUnits: {{dynamodb_capacity.write}}
         {% if _env.stage %}
         TableName: {{_env.name}}-{{_layer.name}}-{{_env.stage}}-state
         {% else %}
         TableName: {{_env.name}}-{{_layer.name}}-state
         {% endif %}
+    {% endif %}

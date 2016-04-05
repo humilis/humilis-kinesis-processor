@@ -1,18 +1,17 @@
-# -*- coding: utf-8 -*-
-# preprocessor:jinja2
+"""Lambda function setuptools entry point."""
 
 from setuptools import setup, find_packages
 
 setup(
-    name="humilis-kinesis-mapper-lambda",
-    version="0.0.2",
+    name="humilis-kinesis-processor-lambda",
+    version="0.2.0",
     packages=find_packages(),
     include_package_data=True,
     # We often need the latest version of boto3 so we include it as a req
     install_requires=[
         "boto3",
         "raven",
-        "lambdautils",
+        "lambdautils>=0.4.3",
         "werkzeug",
     ],
     classifiers=[

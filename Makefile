@@ -3,7 +3,7 @@ PIP := .env/bin/pip
 PYTHON := .env/bin/python
 TOX := .env/bin/tox
 STAGE := DEV
-HUMILIS_ENV := tests/integration/humilis-kinesis-mapper
+HUMILIS_ENV := tests/integration/humilis-kinesis-processor
 
 # create virtual environment
 .env:
