@@ -8,6 +8,5 @@
 *.egg-info
 *.pyc
 *.outputs.yaml
-.humilis.ini
 
 __pycache__
