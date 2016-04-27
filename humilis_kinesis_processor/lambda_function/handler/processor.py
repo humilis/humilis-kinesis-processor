@@ -43,25 +43,41 @@ def process_event(
     logger.info("Going to process {} events".format(len(events)))
     logger.info("First event: {}".format(pretty(events[0])))
 
-    if input.get("filter"):
-        logger.info("Filtering input events")
-        events = [ev for ev in events if input["filter"](ev, sargs)]
-        if not events:
-            logger.info("All input events were filtered out: nothing to do")
-            return
+    events = process_input(input, events, sargs)
+    if not events:
+        return
+
+    oevents = produce_outputs(output, events, sargs)
+
+    # To make the processing task as atomic as possible we deliver the events
+    # to the output streams only after all outputs have been produced.
+    deliver_outputs(output, oevents)
+
+
+def deliver_outputs(output, oevents):
+    """Delivers the output events to their corresponding streams."""
+    for i, o in enumerate(output):
+        logger.info("Forwarding output #{}".format(i))
+        stream = o.get("kinesis_stream")
+
+        if not oevents[i]:
+            logger.info("All events have been filtered out for this output")
+            continue
+
+        if stream:
+            send_to_kinesis_stream(oevents[i], stream, o.get("partition_key"))
         else:
-            logger.info("Selected {} input events".format(len(events)))
-    else:
-        logger.info("No input filter: using all input events")
+            logger.info("No output Kinesis stream: not forwarding to Kinesis")
 
-    if input.get("mapper"):
-        logger.info("Mapping input evets")
-        for ev in events:
-            input["mapper"](ev, sargs)
-        logger.info("First mapped input events: {}".format(pretty(events[0])))
-    else:
-        logger.info("No input mapping: processing raw input events")
+        delivery_stream = o.get("firehose_delivery_stream")
+        if delivery_stream:
+            send_to_delivery_stream(oevents[i], delivery_stream)
+        else:
+            logger.info("No FH delivery stream: not forwarding to FH")
 
+
+def produce_outputs(output, events, sargs):
+    """Produces the output event streams."""
     oevents = []
     _all = lambda ev, sargs: True
     for i, o in enumerate(output):
@@ -82,23 +98,31 @@ def process_event(
         logger.info("Successfully mapped {} events".format(len(oevents[i])))
         logger.info("First mapped event: {}".format(pretty(oevents[0])))
 
-        # To make the processing task as atomic as possible, do no send any
-        # event to the output streams before making sure that no filter nor
-        # mapper raises an exception.
+    return oevents
 
-    for i, o in enumerate(output):
-        logger.info("Forwarding output #{}".format(i))
-        stream = o.get("kinesis_stream")
-        if stream:
-            send_to_kinesis_stream(oevents[i], stream, o.get("partition_key"))
-        else:
-            logger.info("No output Kinesis stream: not forwarding to Kinesis")
 
-        delivery_stream = o.get("firehose_delivery_stream")
-        if delivery_stream:
-            send_to_delivery_stream(oevents[i], delivery_stream)
+def process_input(input, events, sargs):
+    """Filters and maps the input events."""
+    if input.get("filter"):
+        logger.info("Filtering input events")
+        events = [ev for ev in events if input["filter"](ev, sargs)]
+        if not events:
+            logger.info("All input events were filtered out: nothing to do")
+            return []
         else:
-            logger.info("No FH delivery stream: not forwarding to FH")
+            logger.info("Selected {} input events".format(len(events)))
+    else:
+        logger.info("No input filter: using all input events")
+
+    if input.get("mapper"):
+        logger.info("Mapping input evets")
+        for ev in events:
+            input["mapper"](ev, sargs)
+        logger.info("First mapped input events: {}".format(pretty(events[0])))
+    else:
+        logger.info("No input mapping: processing raw input events")
+
+    return events
 
 
 def send_to_delivery_stream(events, delivery_stream):
