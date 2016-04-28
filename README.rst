@@ -1,4 +1,4 @@
-Kinesis event stream mapper
+Kinesis event stream processor 
 ===================================
 
 .. |Build Status| image:: https://travis-ci.org/humilis/humilis-kinesis-mapper.svg?branch=master
@@ -18,7 +18,7 @@ Installation
 
 ::
 
-    pip install humilis-kinesis-mapper
+    pip install humilis-kinesis-processor
 
 Development
 -----------
@@ -75,14 +75,14 @@ Contact
 -------
 
 If you have questions, bug reports, suggestions, etc. please create an issue on
-the `GitHub project page <http://github.com/humilis/humilis-kinesis-mapper>`_.
+the `GitHub project page <http://github.com/humilis/humilis-kinesis-processor>`_.
 
 License
 -------
 
 This software is licensed under the `MIT license <http://en.wikipedia.org/wiki/MIT_License>`_
 
-See `License file <https://github.com/humilis/humilis-kinesis-mapper/blob/master/LICENSE.txt>`_
+See `License file <https://github.com/humilis/humilis-kinesis-processor/blob/master/LICENSE.txt>`_
 
 
 © 2016 Anatoly Bubenkov, Innovative Travel and others.

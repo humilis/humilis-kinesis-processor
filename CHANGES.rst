@@ -1,7 +1,12 @@
 Changelog
 =========
 
-0.1.0
+0.2.0
+-----
+
+- Package becomes a generic map-multiplex-map processor (germangh)
+
+0.1.1
 -----
 
 - Cleanup package data (bubenkoff)

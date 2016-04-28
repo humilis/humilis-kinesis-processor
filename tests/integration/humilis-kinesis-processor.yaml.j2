@@ -1,0 +1,57 @@
+---
+humilis-kinesis-mapper:
+
+    description:
+        A dummy environment for testing the map-uaparser processor
+
+    layers:
+        # The I/O Kinesis streams
+        - layer: streams
+          layer_type: streams
+          streams:
+              # Use two shards to test support for multiple shards
+              - name: InputStream
+                shard_count: 2
+              - name: OutputStream1
+                shard_count: 2
+              - name: OutputStream2
+                shard_count: 1
+              - name: ErrorStream
+                shard_count: 1
+
+        # Tests all features of the kinesis processor
+        - layer: kinesis-processor
+          layer_type: kinesis-processor
+          # Determines the target shard for an event
+          dynamodb_capacity:
+            read: 5
+            write: 5
+          # The number of events processed in one Lambda invokation
+          batch_size: 1
+          lambda_dependencies:
+            - user-agents
+            - mycode/mypkg
+          input:
+            kinesis_stream: {layer: streams, name: InputStream}
+            filter: mypkg:input_filter
+            mapper: mypkg:input_mapper
+          error:
+            kinesis_stream: {layer: streams, name: ErrorStream}
+            filter: mypkg:error_filter
+            mapper: mypkg:error_mapper
+            partition_key: False
+          output:
+            - filter: mypkg:output_filter_1
+              mapper: mypkg:output_mapper_1
+              kinesis_stream: {layer: streams, name: OutputStream1}
+              partition_key: mypkg:partition_key
+            - mapper: mypkg:output_mapper_2
+              # No filter specified: passthrough all
+              kinesis_stream: {layer: streams, name: OutputStream2}
+              partition_key: mypkg:partition_key
+
+        # Keeps secrets: the Sentry token
+        - layer: secrets-vault
+          layer_type: secrets-vault
+          associated_processors:
+              - kinesis-processor

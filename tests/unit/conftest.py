@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 import codecs
 
+from copy import deepcopy
 import json
 from mock import Mock
 import uuid
@@ -10,60 +11,51 @@ import uuid
 import pytest
 
 
-@pytest.fixture(scope="session")
-def event(request):
-    """An event that will be inserted in a Kinesis stream."""
+@pytest.fixture
+def kinesis_record_template():
+    """A template for a Kinesis event data record."""
     return {
-        "id": str(uuid.uuid4()),
-        "user_agent": "BlackBerry9700/5.0.0.862 Profile/MIDP-2.1 Configuration/CLDC-1.1 "
-                      "VendorID/331 UNTRUSTED/1.0 3gpp-gba",
-    }
+        "eventID": "shardId-000000000000:44200961",
+        "eventVersion": "1.0",
+        "kinesis": {
+            "partitionKey": "partitionKey-3",
+            "data": "",
+            "kinesisSchemaVersion": "1.0",
+            "sequenceNumber": "4954511524144582180062593244200961"
+        },
+        "invokeIdentityArn": "arn:aws:iam::EXAMPLE",
+        "eventName": "aws:kinesis:record",
+        "eventSourceARN": "arn:aws:kinesis:EXAMPLE",
+        "eventSource": "aws:kinesis",
+        "awsRegion": "us-east-1"}
 
 
 @pytest.fixture
-def kinesis_event_template():
+def kinesis_event(kinesis_record_template, events):
     """A sample Kinesis event."""
-    return {
-        "Records": [
-            {
-                "eventID": "shardId-000000000000:44200961",
-                "eventVersion": "1.0",
-                "kinesis": {
-                    "partitionKey": "partitionKey-3",
-                    "data": "",
-                    "kinesisSchemaVersion": "1.0",
-                    "sequenceNumber": "4954511524144582180062593244200961"
-                },
-                "invokeIdentityArn": "arn:aws:iam::EXAMPLE",
-                "eventName": "aws:kinesis:record",
-                "eventSourceARN": "arn:aws:kinesis:EXAMPLE",
-                "eventSource": "aws:kinesis",
-                "awsRegion": "us-east-1"
-            }
-        ]
-    }
+    encoded_events = [codecs.encode(json.dumps(ev).encode("utf-8"), "base64")
+                      for ev in events]
+    records = []
+    for ev in encoded_events:
+        kr = deepcopy(kinesis_record_template)
+        kr["kinesis"]["data"] = ev
+        records.append(kr)
+
+    return {"Records": records}
 
 
 @pytest.fixture
-def kinesis_event(kinesis_event_template, event):
+def bad_kinesis_event(kinesis_record_template, bad_events):
     """A sample Kinesis event."""
-    encoded_event = codecs.encode(json.dumps(event).encode("utf-8"), "base64")
-    kinesis_event_template["Records"][0]["kinesis"]["data"] = encoded_event
-    return kinesis_event_template
+    encoded_events = [codecs.encode(json.dumps(ev).encode("utf-8"), "base64")
+                      for ev in bad_events]
+    records = []
+    for ev in encoded_events:
+        kr = deepcopy(kinesis_record_template)
+        kr["kinesis"]["data"] = ev
+        records.append(kr)
 
-
-@pytest.fixture
-def event_bad():
-    """A bad event that should trigger and exception."""
-    return "This is a bad event!"
-
-
-@pytest.fixture
-def kinesis_event_bad(kinesis_event, event_bad):
-    """A sample Kinesis event."""
-    encoded_event = codecs.encode(event_bad.encode("utf-8"), "base64")
-    kinesis_event["Records"][0]["kinesis"]["data"] = encoded_event
-    return kinesis_event
+    return {"Records": records}
 
 
 @pytest.fixture(scope="session")

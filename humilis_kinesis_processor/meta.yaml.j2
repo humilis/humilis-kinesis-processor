@@ -1,0 +1,139 @@
+---
+# Hyperparameters to this layer:
+#
+# input, output, error
+# input_delivery, output_delivery, error_delivery
+# lambda_dependencies
+meta:
+    description:
+        Processes events in a Kinesis stream
+    {% if dependencies %}
+    dependencies:
+        # Needed if the Lambda delivers to S3
+        {% for d in dependencies %}
+        - {{d}}
+        {% endfor %}
+    {% endif %}
+    parameters:
+        dynamodb_capacity:
+            description:
+                The read and write capacity for the Lambda state table(s)
+            value:
+                read: 5
+                write: 5
+
+        partition_key:
+            description:
+                A callable that produces the partition key that determines the 
+                target shard for output events. If not provided a random 
+                partition key will be used.
+            value:
+
+        batch_size:
+            description:
+                The number of events to batch in one lambda execution
+            value: 1
+
+        lambda_dependencies:
+            description:
+                A list of Python dependencies for the Lambda function
+            value: []
+
+        # There can be 0 or 1 input/error streams
+        {% set stream = {"input": input, "error": error} %}
+        {% for stype in ["input", "error"] %}
+        {% set s = stream[stype] %}
+        {% if s %}
+        meta_{{stype}}:
+            description:
+                Settings for the {{stype}} event stream
+            value:
+                {% if s.kinesis_stream %}
+                kinesis_stream:
+                    ref:
+                        parser: output
+                        parameters:
+                            layer_name: {{s.kinesis_stream.layer}}
+                            output_name: {{s.kinesis_stream.name}}
+                kinesis_stream_arn:
+                    ref:
+                        parser: output
+                        parameters:
+                            layer_name: {{s.kinesis_stream.layer}}
+                            output_name: {{s.kinesis_stream.name}}Arn
+                {% endif %}
+
+                {% if s.firehose_delivery_stream %}
+                firehose_delivery_stream:
+                    ref:
+                        parser: output
+                        parameters:
+                            layer_name: {{s.firehose_delivery_stream.layer}}
+                            output_name: {{s.firehose_delivery_stream.name}}
+                firehose_delivery_stream_arn:
+                    ref:
+                        parser: output
+                        parameters:
+                            layer_name: {{s.firehose_delivery_stream.layer}}
+                            output_name: {{s.firehose_delivery_stream.name}}Arn
+                {% endif %}
+                mapper: "{{s.mapper}}"
+                filter: "{{s.filter}}"
+        {% endif %}
+        {% endfor %}
+
+        # There can be 0 or more output streams
+        {% if output %}
+        meta_output:
+            description:
+                Settings for the output event stream(s)
+            value:
+                {% for s in output %}
+                -
+                  {% if s.kinesis_stream %}
+                  kinesis_stream:
+                      ref:
+                          parser: output
+                          parameters:
+                              layer_name: {{s.kinesis_stream.layer}}
+                              output_name: {{s.kinesis_stream.name}}
+                  kinesis_stream_arn:
+                      ref:
+                          parser: output
+                          parameters:
+                              layer_name: {{s.kinesis_stream.layer}}
+                              output_name: {{s.kinesis_stream.name}}Arn
+                  {% endif %}
+
+                  {% if s.firehose_delivery_stream %}
+                  firehose_delivery_stream:
+                      ref:
+                          parser: output
+                          parameters:
+                              layer_name: {{s.firehose_delivery_stream.layer}}
+                              output_name: {{s.firehose_delivery_stream.name}}
+                  firehose_delivery_stream_arn:
+                      ref:
+                          parser: output
+                          parameters:
+                              layer_name: {{s.firehose_delivery_stream.layer}}
+                              output_name: {{s.firehose_delivery_stream.name}}Arn
+                  {% endif %}
+
+                  mapper: {{s.mapper}}
+                  filter: {{s.filter}}
+                  partition_key: {{s.partition_key}}
+                {% endfor %}
+        {% endif %}
+
+        lambda_function:
+            # We use a low priority so that the references above that retrieve
+            # the names of the relevant streams are resolved before this
+            # reference.
+            priority: 100
+            value:
+                ref:
+                    parser: lambda
+                    parameters:
+                        path: lambda_function
+                        dependencies: {{lambda_dependencies or []}}
