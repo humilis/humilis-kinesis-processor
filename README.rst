@@ -1,10 +1,10 @@
 Kinesis event stream processor 
 ===================================
 
-.. |Build Status| image:: https://travis-ci.org/humilis/humilis-kinesis-mapper.svg?branch=master
-   :target: https://travis-ci.org/humilis/humilis-kinesis-mapper
-.. |PyPI| image:: https://img.shields.io/pypi/v/humilis-kinesis-mapper.svg?style=flat
-   :target: https://pypi.python.org/pypi/humilis-kinesis-mapper
+.. |Build Status| image:: https://travis-ci.org/humilis/humilis-kinesis-processor.svg?branch=master
+   :target: https://travis-ci.org/humilis/humilis-kinesis-processor
+.. |PyPI| image:: https://img.shields.io/pypi/v/humilis-kinesis-processor.svg?style=flat
+   :target: https://pypi.python.org/pypi/humilis-kinesis-processor
 
 |Build Status| |PyPI|
 
