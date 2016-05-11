@@ -17,6 +17,7 @@ long_description = (
 setup(
     name="humilis-kinesis-processor",
     include_package_data=True,
+    package_data={"": ["*.j2", "*.yaml"]},
     packages=find_packages(include=['humilis_kinesis_processor',
                                     'humilis_kinesis_processor.*']),
     version=__version__,
