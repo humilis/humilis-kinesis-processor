@@ -19,11 +19,14 @@ def settings():
         streams_layer_name="streams")
 
 
-@pytest.fixture(scope="session")
+@pytest.yield_fixture(scope="session")
 def environment(settings):
-    """The lambda-processor-test humilis environment."""
+    """The test environment: this fixtures creates it and takes care of
+    removing it after tests have run."""
     env = Environment(settings.environment_path, stage=settings.stage)
-    return env
+    env.create()
+    yield env
+    env.delete()
 
 
 @pytest.fixture(scope="session")

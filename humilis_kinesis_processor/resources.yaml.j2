@@ -9,6 +9,9 @@
 {% set _ = globs.update({'has_output_delivery': True}) %}
 {% endif %}
 {% endfor %}
+# set meta_input and meta_error to empty dicts if the user has not provided them
+{% set meta_error = meta_error or {} %}
+{% set meta_input = meta_input or {} %}
 # Do we need a DynamoDB table to store state info?
 {% if dynamodb_capacity.read|int or dynamodb_capacity.write|int %}
 {% set _ = globs.update({'stateful': False}) %}
@@ -84,12 +87,14 @@ resources:
                     - "kinesis:DescribeStream"
                     - "kinesis:ListStreams"
                   Resource: "*"
+                {% if meta_input.kinesis_stream_arn %}
                 - Effect: Allow
                   # Permissions to read from the input stream
                   Action:
                     - "kinesis:GetRecords"
                     - "kinesis:GetShardIterator"
                   Resource: {{ meta_input.kinesis_stream_arn }}
+                  {% endif %}
                   {% if has_output_stream or meta_error.kinesis_stream_arn %}
                 - Effect: Allow
                   # Permissions to write to error and output streams
@@ -120,6 +125,7 @@ resources:
                       - ""
                       - ["arn:aws:dynamodb:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "table/", {"Ref": "StateTable"}]
                  {% endif %}
+    {% if meta_input.kinesis_stream_arn %}
     InputEventSourceMapping:
       Type: "AWS::Lambda::EventSourceMapping"
       Properties:
@@ -130,6 +136,7 @@ resources:
           Ref: LambdaFunction
         StartingPosition:
           TRIM_HORIZON
+    {% endif %}
     # The DynamoDB tables that keep shard-specific state information
     #
     # We use the same state table across shards. The lambdautils functions

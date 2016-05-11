@@ -21,8 +21,9 @@ def get_all_records(client, si, limit, timeout=10):
     return retrieved_recs
 
 
-def test_io_streams_put_get_record(kinesis, payloads, shard_iterators, events,
-                                   input_stream_name, output_stream_name):
+def test_io_streams_put_get_record(
+        environment, kinesis, payloads, shard_iterators, events,
+        input_stream_name, output_stream_name):
     """Put and read a record from the input stream."""
 
     # Put some records in the input stream
