@@ -22,13 +22,6 @@ meta:
                 read: 5
                 write: 5
 
-        partition_key:
-            description:
-                A callable that produces the partition key that determines the 
-                target shard for output events. If not provided a random 
-                partition key will be used.
-            value:
-
         batch_size:
             description:
                 The number of events to batch in one lambda execution
