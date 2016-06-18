@@ -18,10 +18,6 @@ class FirehoseError(Exception):
     pass
 
 
-def _default_mapper(ev, state_args):
-    return ev
-
-
 def process_event(
         kinesis_event, context, environment, layer, stage, input, output):
     """Forwards events to a Kinesis stream (for further processing) and
@@ -91,12 +87,15 @@ def produce_outputs(output, events, sargs):
         if not oevents[i]:
             continue
 
-        omapper = o.get("mapper", _default_mapper)
-        for ev in oevents[i]:
-            omapper(ev, state_args=sargs)
+        omapper = o.get("mapper")
+        if omapper:
+            for ev in oevents[i]:
+                omapper(ev, state_args=sargs)
+            logger.info("Mapped {} events".format(len(oevents[i])))
+        else:
+            logger.info("No output mapper: doing nothing")
 
-        logger.info("Successfully mapped {} events".format(len(oevents[i])))
-        logger.info("First mapped event: {}".format(pretty(oevents[0])))
+        logger.info("First output event: {}".format(pretty(oevents[0])))
 
     return oevents
 
