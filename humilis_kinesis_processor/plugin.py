@@ -1,4 +1,5 @@
 """Humilis plugin entrypoint."""
+
 import os
 
 

@@ -1,4 +1,4 @@
-Kinesis event stream processor 
+Kinesis event stream processor
 ===================================
 
 .. |Build Status| image:: https://travis-ci.org/humilis/humilis-kinesis-processor.svg?branch=master
@@ -85,4 +85,4 @@ This software is licensed under the `MIT license <http://en.wikipedia.org/wiki/M
 See `License file <https://github.com/humilis/humilis-kinesis-processor/blob/master/LICENSE.txt>`_
 
 
-© 2016 Anatoly Bubenkov, Innovative Travel and others.
+© 2016 Anatoly Bubenkov, `FindHotel <http://company.findhotel.net>`_ and others.

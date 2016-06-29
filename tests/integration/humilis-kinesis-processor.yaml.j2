@@ -34,7 +34,7 @@ humilis-kinesis-mapper:
           input:
             kinesis_stream: {layer: streams, name: InputStream}
             filter: mypkg:input_filter
-            mapper: mypkg:input_mapper
+            mapper: mypkg.module:input_mapper
           error:
             kinesis_stream: {layer: streams, name: ErrorStream}
             filter: mypkg:error_filter
