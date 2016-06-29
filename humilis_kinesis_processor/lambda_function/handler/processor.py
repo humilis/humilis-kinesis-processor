@@ -25,7 +25,7 @@ def process_event(
 
     events, shard_id = utils.unpack_kinesis_event(
         kinesis_event, deserializer=json.loads,
-        embed_timestamp="arrivalTimestamp")
+        embed_timestamp="receivedAt")
 
     input_delivery_stream = input.get("firehose_delivery_stream")
     if input_delivery_stream:
