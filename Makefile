@@ -7,7 +7,7 @@ HUMILIS_ENV := tests/integration/humilis-kinesis-processor
 
 # create virtual environment
 .env:
-	virtualenv .env -p python3.4
+	virtualenv .env -p python3
 
 # install dev dependencies, create layers directory
 develop: .env
