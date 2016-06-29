@@ -30,19 +30,18 @@ def process_event(
     if input_delivery_stream:
         send_to_delivery_stream(events, input_delivery_stream)
 
-    # Arguments passed to user callables that are needed to set/get processor
-    # state.
-    sargs = dict(environment=environment, layer=layer, stage=stage,
-                 shard_id=shard_id)
+    # The humilis context to pass to filters and mappers
+    humilis_context = dict(environment=environment, layer=layer, stage=stage,
+                           shard_id=shard_id, lambda_context=context)
 
     logger.info("Going to process {} events".format(len(events)))
     logger.info("First event: {}".format(pretty(events[0])))
 
-    events = process_input(input, events, sargs)
+    events = process_input(input, events, humilis_context)
     if not events:
         return
 
-    oevents = produce_outputs(output, events, sargs)
+    oevents = produce_outputs(output, events, humilis_context)
 
     # To make the processing task as atomic as possible we deliver the events
     # to the output streams only after all outputs have been produced.
@@ -71,16 +70,16 @@ def deliver_outputs(output, oevents):
             logger.info("No FH delivery stream: not forwarding to FH")
 
 
-def produce_outputs(output, events, sargs):
+def produce_outputs(output, events, context):
     """Produces the output event streams."""
     oevents = []
-    _all = lambda ev, sargs: True
+    _all = lambda ev, context: True
     for i, o in enumerate(output):
         logger.info("Producing output #{}".format(i))
         ofilter = o.get("filter", _all)
         if not ofilter:
             ofilter = _all
-        oevents.append([dict(ev) for ev in events if ofilter(ev, sargs)])
+        oevents.append([dict(ev) for ev in events if ofilter(ev, context)])
         logger.info("Selected {} events".format(len(oevents[i])))
 
         if not oevents[i]:
@@ -89,7 +88,7 @@ def produce_outputs(output, events, sargs):
         omapper = o.get("mapper")
         if omapper:
             for ev in oevents[i]:
-                omapper(ev, state_args=sargs)
+                omapper(ev, context)
             logger.info("Mapped {} events".format(len(oevents[i])))
         else:
             logger.info("No output mapper: doing nothing")
@@ -99,11 +98,11 @@ def produce_outputs(output, events, sargs):
     return oevents
 
 
-def process_input(input, events, sargs):
+def process_input(input, events, context):
     """Filters and maps the input events."""
     if input.get("filter"):
         logger.info("Filtering input events")
-        events = [ev for ev in events if input["filter"](ev, sargs)]
+        events = [ev for ev in events if input["filter"](ev, context)]
         if not events:
             logger.info("All input events were filtered out: nothing to do")
             return []
@@ -115,7 +114,7 @@ def process_input(input, events, sargs):
     if input.get("mapper"):
         logger.info("Mapping input evets")
         for ev in events:
-            input["mapper"](ev, sargs)
+            input["mapper"](ev, context)
         logger.info("First mapped input events: {}".format(pretty(events[0])))
     else:
         logger.info("No input mapping: processing raw input events")
