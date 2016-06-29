@@ -11,10 +11,6 @@ def input_filter(event, *args, **kwargs):
     return True
 
 
-def input_mapper(event, *args, **kwargs):
-    event["input_mapper"] = True
-
-
 def output_filter_1(event, *args, **kwargs):
     event["output_filter_1"] = True
     return True

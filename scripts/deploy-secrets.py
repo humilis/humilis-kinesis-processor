@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Takes secrets from the local keyring and stores them in the secrets vault.
 """
@@ -12,7 +11,7 @@ import keyring
 
 
 # The namespace in the local keyring
-NAMESPACE = "humilis-kinesis-mapper:{stage}"
+NAMESPACE = "humilis-kinesis-processor:{stage}"
 
 # Map local secret keys to secret keys in the event tracker vault
 SECRETS = {"sentry.dsn": "sentry.dsn"}
