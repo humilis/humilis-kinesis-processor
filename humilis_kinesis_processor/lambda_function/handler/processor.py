@@ -24,7 +24,8 @@ def process_event(
     Redshift)"""
 
     events, shard_id = utils.unpack_kinesis_event(
-        kinesis_event, deserializer=json.loads)
+        kinesis_event, deserializer=json.loads,
+        embed_timestamp="arrivalTimestamp")
 
     input_delivery_stream = input.get("firehose_delivery_stream")
     if input_delivery_stream:

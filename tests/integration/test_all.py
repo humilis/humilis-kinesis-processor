@@ -48,4 +48,5 @@ def test_io_streams_put_get_record(
     put_ids = {json.loads(x)['id'] for x in payloads}
     assert not retrieved_ids.difference(put_ids)
     assert all("input_filter" in ev and "input_mapper" in ev
+               and "arrivalTimestamp" in ev
                for ev in retrieved_events)
