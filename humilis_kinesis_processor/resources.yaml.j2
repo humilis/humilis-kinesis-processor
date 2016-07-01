@@ -142,7 +142,7 @@ resources:
     # We use the same state table across shards. The lambdautils functions
     # set_state and get_state take care of concurrent access to the state table
     # across shards by storing each shard state in a different namespace.
-    {% if stateful %}
+    {% if globs.stateful %}
     StateTable:
       Type: "AWS::DynamoDB::Table"
       Properties:
