@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.3.0
+-----
+
+- Major bugfix: give permission to write state to DynamodDB
+
 0.2.0
 -----
 

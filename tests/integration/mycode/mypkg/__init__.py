@@ -2,7 +2,7 @@
 import uuid
 
 
-def partition_key(event, *args, **kwargs):
+def partition_key(event):
     return event.get("client_id", str(uuid.uuid4()))
 
 

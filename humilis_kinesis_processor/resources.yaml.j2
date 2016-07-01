@@ -14,9 +14,9 @@
 {% set meta_input = meta_input or {} %}
 # Do we need a DynamoDB table to store state info?
 {% if dynamodb_capacity.read|int or dynamodb_capacity.write|int %}
-{% set _ = globs.update({'stateful': False}) %}
-{% else %}
 {% set _ = globs.update({'stateful': True}) %}
+{% else %}
+{% set _ = globs.update({'stateful': False}) %}
 {% endif %}
 resources:
     # The lambda function
