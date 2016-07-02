@@ -1,3 +1,3 @@
 include *.rst
-include humilis_kinesis_mapper/*.j2
-include humilis_kinesis_mapper/*.yaml
+include humilis_kinesis_processor/*.j2
+include humilis_kinesis_processor/*.yaml
