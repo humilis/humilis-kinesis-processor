@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.4.0
+-----
+
+- Major bugfix: permission to put records in delivery streams
+
 0.3.0
 -----
 
