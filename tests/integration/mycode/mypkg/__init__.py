@@ -18,10 +18,12 @@ def output_filter_1(event, *args, **kwargs):
 
 def output_mapper_1(event, *args, **kwargs):
     event["output_mapper_1"] = True
+    return event
 
 
 def output_mapper_2(event, *args, **kwargs):
     event["output_mapper_2"] = True
+    return event
 
 
 def error_filter(event, *args, **kwargs):
@@ -33,3 +35,4 @@ def error_filter(event, *args, **kwargs):
 def error_mapper(event, *args, **kwargs):
     print(event)
     event["error_mapper"] = True
+    return event

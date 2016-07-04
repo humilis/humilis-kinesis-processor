@@ -29,7 +29,7 @@ setup(
     long_description=long_description,
     install_requires=[
         "humilis>=0.4.1",
-        "lambdautils>=0.4.3"],
+        "lambdautils>=0.5.5"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 2"

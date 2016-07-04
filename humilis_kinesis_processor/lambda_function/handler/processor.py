@@ -88,8 +88,10 @@ def produce_outputs(output, events, context):
 
         omapper = o.get("mapper")
         if omapper:
+            mapped_evs = []
             for ev in oevents[i]:
-                omapper(ev, context)
+                mapped_evs.append(omapper(ev, context))
+            oevents[i] = mapped_evs
             logger.info("Mapped {} events".format(len(oevents[i])))
         else:
             logger.info("No output mapper: doing nothing")
@@ -114,13 +116,16 @@ def process_input(input, events, context):
 
     if input.get("mapper"):
         logger.info("Mapping input evets")
+        mapped_evs = []
         for ev in events:
-            input["mapper"](ev, context)
+            mapped_evs.append(input["mapper"](ev, context))
+
         logger.info("First mapped input events: {}".format(pretty(events[0])))
     else:
+        mapped_evs = events
         logger.info("No input mapping: processing raw input events")
 
-    return events
+    return mapped_evs
 
 
 def send_to_delivery_stream(events, delivery_stream):

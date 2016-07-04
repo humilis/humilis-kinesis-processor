@@ -3,3 +3,4 @@
 
 def input_mapper(event, *args, **kwargs):
     event["input_mapper"] = True
+    return event
