@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import copy
 import logging
 import json
 
@@ -80,7 +81,8 @@ def produce_outputs(output, events, context):
         ofilter = o.get("filter", _all)
         if not ofilter:
             ofilter = _all
-        oevents.append([dict(ev) for ev in events if ofilter(ev, context)])
+        oevents.append([copy.deepcopy(ev) for ev in events
+                        if ofilter(ev, context)])
         logger.info("Selected {} events".format(len(oevents[i])))
 
         if not oevents[i]:
