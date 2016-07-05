@@ -22,6 +22,12 @@ meta:
                 read: 5
                 write: 5
 
+        starting_position:
+            description:
+                The starting position in the Kinesis stream
+            value:
+                TRIM_HORIZON
+
         batch_size:
             description:
                 The number of events to batch in one lambda execution

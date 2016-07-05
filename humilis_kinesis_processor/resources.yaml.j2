@@ -135,7 +135,7 @@ resources:
         FunctionName:
           Ref: LambdaFunction
         StartingPosition:
-          TRIM_HORIZON
+          {{starting_position}} 
     {% endif %}
     # The DynamoDB tables that keep shard-specific state information
     #
