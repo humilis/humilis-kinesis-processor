@@ -38,6 +38,11 @@ meta:
                 A list of Python dependencies for the Lambda function
             value: []
 
+        iam_actions:
+            description:
+                Additional IAM actions that the Lambda will be allowed to perform
+            value: []   # A list of dicts like {action: x, resource: y}
+
         # There can be 0 or 1 input/error streams
         {% set stream = {"input": input, "error": error} %}
         {% for stype in ["input", "error"] %}

@@ -115,6 +115,12 @@ resources:
                   Action:
                     - "dynamodb:GetItem"
                   Resource: "*"
+                  {% for policy in iam_actions %}
+                - Effect: Allow
+                  Action:
+                    - "{{policy.action}}"
+                  Resource: "{{policy.resource}}"
+                  {% endfor %}
                   {% if globs.stateful %}
                 - Effect: Allow
                   # Read/write permission on the associated state tables

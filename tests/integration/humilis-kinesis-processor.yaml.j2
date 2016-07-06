@@ -28,6 +28,8 @@ humilis-kinesis-mapper:
             write: 5
           # The number of events processed in one Lambda invokation
           batch_size: 1
+          # Additional IAM permission to write to Elastic Search
+          iam_actions: [{action: "es:*", resource: "*"}]
           lambda_dependencies:
             - user-agents
             - mycode/mypkg
