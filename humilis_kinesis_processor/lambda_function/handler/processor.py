@@ -98,7 +98,7 @@ def produce_outputs(output, events, context):
         else:
             logger.info("No output mapper: doing nothing")
 
-        logger.info("First output event: {}".format(pretty(oevents[0])))
+        logger.info("First output event: {}".format(pretty(mapped_evs[0])))
 
     return oevents
 
@@ -122,7 +122,8 @@ def process_input(input, events, context):
         for ev in events:
             mapped_evs.append(input["mapper"](ev, context))
 
-        logger.info("First mapped input events: {}".format(pretty(events[0])))
+        logger.info("First mapped input events: {}".format(
+            pretty(mapped_evs[0])))
     else:
         mapped_evs = events
         logger.info("No input mapping: processing raw input events")
