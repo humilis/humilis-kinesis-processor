@@ -95,7 +95,9 @@ def produce_outputs(output, events, context):
                 mapped_evs.append(omapper(ev, context))
             oevents[i] = mapped_evs
             logger.info("Mapped {} events".format(len(oevents[i])))
-            logger.info("First output event: {}".format(pretty(mapped_evs[0])))
+            if mapped_evs:
+                logger.info("First output event: {}".format(
+                    pretty(mapped_evs[0])))
         else:
             logger.info("No output mapper: doing nothing")
 
