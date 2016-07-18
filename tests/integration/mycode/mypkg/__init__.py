@@ -1,11 +1,14 @@
 
 import uuid
 
+from lambdautils.monitor import graphite_monitor
+
 
 def partition_key(event):
     return event.get("client_id", str(uuid.uuid4()))
 
 
+@graphite_monitor("processed.events")
 def input_filter(event, *args, **kwargs):
     event["input_filter"] = True
     return True

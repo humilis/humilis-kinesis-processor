@@ -3,6 +3,7 @@
 # preprocessor:jinja2
 
 import logging
+import os
 
 import lambdautils.utils as utils
 import raven
@@ -12,6 +13,10 @@ from .processor import process_event
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+os.environ["HUMILIS_ENVIRONMENT"] = "{{_env.name}}"
+os.environ["HUMILIS_STAGE"] = "{{_env.stage}}"
+os.environ["HUMILIS_LAYER"] = "{{_layer.name}}"
 
 
 def produce_io_stream_callables():

@@ -14,7 +14,7 @@ def settings():
     Settings = namedtuple('Settings',
                           'stage environment_path streams_layer_name')
     return Settings(
-        stage="DEV",
+        stage=os.environ.get("STAGE", "DEV"),
         environment_path="tests/integration/humilis-kinesis-processor.yaml.j2",
         streams_layer_name="streams")
 
@@ -24,9 +24,13 @@ def environment(settings):
     """The test environment: this fixtures creates it and takes care of
     removing it after tests have run."""
     env = Environment(settings.environment_path, stage=settings.stage)
-    env.create()
+    if os.environ.get("UPDATE", "yes") == "yes":
+        env.create(update=True)
+    else:
+        env.create()
     yield env
-    env.delete()
+    if os.environ.get("DESTROY", "yes") == "yes":
+        env.delete()
 
 
 @pytest.fixture(scope="session")

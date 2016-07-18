@@ -28,8 +28,7 @@ setup(
     description="Humilis kinesis stream processor plugin",
     long_description=long_description,
     install_requires=[
-        "humilis>=0.4.1",
-        "lambdautils>=0.5.8"],
+        "humilis>=0.4.1"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 2"

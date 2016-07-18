@@ -14,7 +14,7 @@ import keyring
 NAMESPACE = "humilis-kinesis-processor:{stage}"
 
 # Map local secret keys to secret keys in the event tracker vault
-SECRETS = {"sentry.dsn": "sentry.dsn"}
+SECRETS = {"sentry.dsn": "sentry.dsn", "graphite.api_key": "graphite.api_key"}
 
 
 def deploy_secrets(environment_file, stage="dev"):
@@ -25,7 +25,7 @@ def deploy_secrets(environment_file, stage="dev"):
     for local_key, vault_key in SECRETS.items():
         keychain_namespace = NAMESPACE.format(stage=stage.lower())
         value = keyring.get_password(keychain_namespace, local_key) or \
-            os.environ.get("SENTRY_DSN")
+            os.environ.get(local_key.replace(".", "_").upper())
 
         if value is None:
             print("Secret {}/{} not found in local keychain nor SENTRY_DSN "

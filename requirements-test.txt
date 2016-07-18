@@ -8,14 +8,15 @@ mock
 user-agents
 
 # We need humilis for deployment and also for the integration test suite
--e git+https://github.com/Innovativetravel/humilis#egg=humilis
+-e git+https://github.com/humilis/humilis#egg=humilis
+-e git+https://github.com/humilis/humilis-lambdautils#egg=humilis-lambdautils
 
 # We need to install the layer in order to deploy it and test it
 -e .
 
 # We also need these layers
--e git+https://github.com/Innovativetravel/humilis-streams#egg=humilis-streams
--e git+https://github.com/Innovativetravel/humilis-secrets-vault#egg=humilis-secrets-vault
+-e git+https://github.com/humilis/humilis-streams#egg=humilis-streams
+-e git+https://github.com/humilis/humilis-secrets-vault#egg=humilis-secrets-vault
 
 werkzeug
 
