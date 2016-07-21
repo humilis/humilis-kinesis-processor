@@ -6,7 +6,10 @@ import json
 import uuid
 
 
-@pytest.fixture(scope="session", params=[1, 5])
+NB_EVENTS = 5
+
+
+@pytest.fixture(scope="function")
 def events(request):
     """A batch of events to be ingested by Kinesis."""
     return [{
@@ -18,16 +21,16 @@ def events(request):
                        "like Gecko) Version/4.0 Mobile Safari/534.30"),
         "url": "http://staging.findhotel.net/?lang=nl-NL",
         "referrer_url": "http://staging.findhotel.net/"
-    } for _ in range(request.param)]
+    } for _ in range(NB_EVENTS)]
 
 
-@pytest.fixture(scope="session", params=[1, 10])
+@pytest.fixture(scope="function", params=[1, 10])
 def bad_events(request):
     """A batch of bad events to be sent to Kinesis."""
     return ["I am bad!" for _ in range(request.param)]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def payloads(events):
     """A list of json-serialized kinesis payloads."""
     payloads = []
@@ -38,7 +41,7 @@ def payloads(events):
     return payloads
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def bad_payloads(bad_events):
     """A list of json-serialized bad payloads."""
     payloads = []

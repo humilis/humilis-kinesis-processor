@@ -64,7 +64,7 @@ def test_set_get_state(
             {
                 "Data": payloads[0],
                 "PartitionKey": str(uuid.uuid4())
-            } for _ in range(payloads)])
+            } for _ in range(len(payloads))])
 
     assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
 
@@ -73,7 +73,7 @@ def test_set_get_state(
     for si in shard_iterators:
         retrieved_recs += get_all_records(kinesis, si, len(payloads), timeout)
 
-    assert len(retrieved_recs) == 1
+    assert len(retrieved_recs) == 2
     retrieved_event = json.loads(retrieved_recs[0]["Data"].decode())
     retrieved_id = retrieved_event["id"]
     put_id = json.loads(payloads[0])["id"]
