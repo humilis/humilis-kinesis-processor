@@ -2,6 +2,7 @@
 import uuid
 
 from lambdautils.monitor import graphite_monitor
+import lambdautils.state as state
 
 
 def partition_key(event):
@@ -11,6 +12,12 @@ def partition_key(event):
 @graphite_monitor("processed.events")
 def input_filter(event, *args, **kwargs):
     event["input_filter"] = True
+    id = event.get("id")
+    if state.get_state(id):
+        return False
+    else:
+        state.set_state(id, "hello there")
+
     return True
 
 

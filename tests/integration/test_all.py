@@ -50,3 +50,34 @@ def test_io_streams_put_get_record(
     assert all("input_filter" in ev and "input_mapper" in ev
                and "receivedAt" in ev
                for ev in retrieved_events)
+
+
+def test_set_get_state(
+        environment, kinesis, payloads, shard_iterators, events,
+        input_stream_name, output_stream_name):
+    """Put and read a record from the input stream."""
+
+    # Put the same record multiple times in the stream
+    response = kinesis.put_records(
+        StreamName=input_stream_name,
+        Records=[
+            {
+                "Data": payloads[0],
+                "PartitionKey": str(uuid.uuid4())
+            } for _ in range(payloads)])
+
+    assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+
+    retrieved_recs = []
+    timeout = min(max(15, 4 * len(payloads)), 150)
+    for si in shard_iterators:
+        retrieved_recs += get_all_records(kinesis, si, len(payloads), timeout)
+
+    assert len(retrieved_recs) == 1
+    retrieved_event = json.loads(retrieved_recs[0]["Data"].decode())
+    retrieved_id = retrieved_event["id"]
+    put_id = json.loads(payloads[0])["id"]
+    assert put_id == retrieved_id
+    assert "input_filter" in retrieved_event \
+        and "input_mapper" in retrieved_event \
+        and "receivedAt" in retrieved_event
