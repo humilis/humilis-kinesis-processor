@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.6.8
+-----
+
+- Set environment variables for the humilis environment/layer/stage
+
 0.4.0
 -----
 
