@@ -1,8 +1,12 @@
 
+import logging
 import uuid
 
 from lambdautils.monitor import graphite_monitor
 import lambdautils.state as state
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def partition_key(event):
@@ -13,9 +17,12 @@ def partition_key(event):
 def input_filter(event, *args, **kwargs):
     event["input_filter"] = True
     id = event.get("id")
-    if state.get_state(id):
+    val = state.get_state(id)
+    if val:
+        logger.info("Retrieved state key '{}': '{}'".format(id, val))
         return False
     else:
+        logger.info("State key '{}' not found: setting a value".format(id))
         state.set_state(id, "hello there")
 
     return True

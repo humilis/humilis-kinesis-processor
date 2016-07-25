@@ -72,6 +72,7 @@ def test_set_get_state(
     for si in shard_iterators:
         retrieved_recs += get_all_records(kinesis, si, len(payloads), timeout)
 
+    # The same input event should be sent to the two output streams
     assert len(retrieved_recs) == 2
     retrieved_event = json.loads(retrieved_recs[0]["Data"].decode())
     retrieved_id = retrieved_event["id"]
