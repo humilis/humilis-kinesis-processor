@@ -38,11 +38,9 @@ def output_mapper_2(event, *args, **kwargs):
 
 def error_filter(event, *args, **kwargs):
     print(event)
-    event["error_filter"] = True
     return True
 
 
 def error_mapper(event, *args, **kwargs):
     print(event)
-    event["error_mapper"] = True
     return event
