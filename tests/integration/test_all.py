@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"""Tests the input and output Kinesis streams."""
+"""Run integration tests."""
 
 import json
 import time
