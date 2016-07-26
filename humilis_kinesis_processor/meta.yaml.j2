@@ -22,6 +22,18 @@ meta:
                 read: 5
                 write: 5
 
+        memory_size:
+            description:
+                The amount of memory in MB allocated to the Lambda function
+            value:
+                128
+
+        timeout:
+            description:
+                The timeout execution time, in seconds
+            value:
+                100
+
         starting_position:
             description:
                 The starting position in the Kinesis stream
