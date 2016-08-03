@@ -66,32 +66,30 @@ meta:
             value:
                 {% if s.kinesis_stream %}
                 kinesis_stream:
+                    {% if s.kinesis_stream is mapping %}
+                    {# if user is passing a reference to a layer output #}
                     ref:
                         parser: output
                         parameters:
                             layer_name: {{s.kinesis_stream.layer}}
                             output_name: {{s.kinesis_stream.name}}
-                kinesis_stream_arn:
-                    ref:
-                        parser: output
-                        parameters:
-                            layer_name: {{s.kinesis_stream.layer}}
-                            output_name: {{s.kinesis_stream.name}}Arn
+                    {% else %}
+                    {# else assume user is passing the name of the stream #}
+                    {{s.kinesis_stream}}
+                    {% endif %}
                 {% endif %}
-
                 {% if s.firehose_delivery_stream %}
                 firehose_delivery_stream:
+                    {% if s.firehose_delivery_stream is mapping %}
                     ref:
                         parser: output
                         parameters:
                             layer_name: {{s.firehose_delivery_stream.layer}}
                             output_name: {{s.firehose_delivery_stream.name}}
-                firehose_delivery_stream_arn:
-                    ref:
-                        parser: output
-                        parameters:
-                            layer_name: {{s.firehose_delivery_stream.layer}}
-                            output_name: {{s.firehose_delivery_stream.name}}Arn
+                    {% else %}
+                    {# user is passing directly the name of the delivery stream #}
+                    {{s.firehose_delivery_stream}}
+                    {% endif %}
                 {% endif %}
                 mapper: "{{s.mapper}}"
                 filter: "{{s.filter}}"
@@ -105,40 +103,36 @@ meta:
                 Settings for the output event stream(s)
             value:
                 {% for s in output %}
-                -
+                - mapper: "{{s.mapper}}"
+                  filter: "{{s.filter}}"
+                  partition_key: {{s.partition_key}}
                   {% if s.kinesis_stream %}
                   kinesis_stream:
+                      {% if s.kinesis_stream is mapping %}
+                      {# user is passing a reference to another layer output #}
                       ref:
                           parser: output
                           parameters:
                               layer_name: {{s.kinesis_stream.layer}}
                               output_name: {{s.kinesis_stream.name}}
-                  kinesis_stream_arn:
-                      ref:
-                          parser: output
-                          parameters:
-                              layer_name: {{s.kinesis_stream.layer}}
-                              output_name: {{s.kinesis_stream.name}}Arn
+                      {% else %}
+                      {# user is passing directly the name of the stream #}
+                      {{s.kinesis_stream}}
+                      {% endif %}
                   {% endif %}
-
                   {% if s.firehose_delivery_stream %}
                   firehose_delivery_stream:
+                      {% if s.firehose_delivery_stream is mapping %}
+                      {# user is passing a reference to another layer output #}
                       ref:
                           parser: output
                           parameters:
                               layer_name: {{s.firehose_delivery_stream.layer}}
                               output_name: {{s.firehose_delivery_stream.name}}
-                  firehose_delivery_stream_arn:
-                      ref:
-                          parser: output
-                          parameters:
-                              layer_name: {{s.firehose_delivery_stream.layer}}
-                              output_name: {{s.firehose_delivery_stream.name}}Arn
+                      {% else %}
+                      {{s.firehose_delivery_stream}}
+                      {% endif %}
                   {% endif %}
-
-                  mapper: {{s.mapper}}
-                  filter: {{s.filter}}
-                  partition_key: {{s.partition_key}}
                 {% endfor %}
         {% endif %}
 

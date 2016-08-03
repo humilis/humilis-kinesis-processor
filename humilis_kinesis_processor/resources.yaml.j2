@@ -71,14 +71,20 @@ resources:
                     - "firehose:DescribeDeliveryStream"
                   Resource:
                     {% if meta_input.firehose_delivery_stream %}
-                    - {{meta_input.firehose_delivery_stream_arn}}
+                    - "Fn::Join":
+                      - ""
+                      - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "deliverystream/", "{{meta_input.firehose_delivery_stream}}"]
                     {% endif %}
                     {% if meta_error.firehose_delivery_stream %}
-                    - {{meta_error.firehose_delivery_stream_arn}}
+                    - "Fn::Join":
+                      - ""
+                      - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "deliverystream/", "{{meta_error.firehose_delivery_stream}}"]
                     {% endif %}
                     {% for os in meta_output %}
                     {% if os.firehose_delivery_stream %}
-                    - {{ os.firehose_delivery_stream_arn }}
+                    - "Fn::Join":
+                      - ""
+                      - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "deliverystream/", "{{os.firehose_delivery_stream}}"]
                     {% endif %}
                     {% endfor %}
                 {% endif %}
@@ -88,27 +94,34 @@ resources:
                     - "kinesis:DescribeStream"
                     - "kinesis:ListStreams"
                   Resource: "*"
-                {% if meta_input.kinesis_stream_arn %}
+                {% if meta_input.kinesis_stream %}
                 - Effect: Allow
                   # Permissions to read from the input stream
                   Action:
                     - "kinesis:GetRecords"
                     - "kinesis:GetShardIterator"
-                  Resource: {{ meta_input.kinesis_stream_arn }}
+                  Resource:
+                    - "Fn::Join":
+                      - ""
+                      - ["arn:aws:kinesis:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "stream/", "{{meta_input.kinesis_stream}}"]
                   {% endif %}
-                  {% if has_output_stream or meta_error.kinesis_stream_arn %}
+                  {% if has_output_stream or meta_error.kinesis_stream %}
                 - Effect: Allow
                   # Permissions to write to error and output streams
                   Action:
                     - "kinesis:PutRecords"
                   Resource:
                     {% for os in meta_output %}
-                    {% if os.kinesis_stream_arn %}
-                    - {{ os.kinesis_stream_arn}}
+                    {% if os.kinesis_stream %}
+                    - "Fn::Join":
+                      - ""
+                      - ["arn:aws:kinesis:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "stream/", "{{os.kinesis_stream}}"]
                     {% endif %}
                     {% endfor %}
-                    {% if meta_error.kinesis_stream_arn %}
-                    - {{meta_error.kinesis_stream_arn}}
+                    {% if meta_error.kinesis_stream %}
+                    - "Fn::Join":
+                      - ""
+                      - ["arn:aws:kinesis:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "stream/", "{{meta_error.kinesis_stream}}"]
                     {% endif %}
                   {% endif %}
                 - Effect: Allow
@@ -132,13 +145,16 @@ resources:
                       - ""
                       - ["arn:aws:dynamodb:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "table/", {"Ref": "StateTable"}]
                  {% endif %}
-    {% if meta_input.kinesis_stream_arn %}
+    {% if meta_input.kinesis_stream %}
     InputEventSourceMapping:
       Type: "AWS::Lambda::EventSourceMapping"
       Properties:
         BatchSize: {{ batch_size }}
         # The ARN of the input Kinesis stream
-        EventSourceArn: {{ meta_input.kinesis_stream_arn }}
+        EventSourceArn:
+            "Fn::Join":
+              - ""
+              - ["arn:aws:kinesis:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "stream/", "{{meta_input.kinesis_stream}}"]
         FunctionName:
           Ref: LambdaFunction
         StartingPosition:
