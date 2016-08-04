@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.7.5
+-----
+
+- Users can also specify input/output/error streams by name instead of as
+  references to another layer outputs.
+
 0.6.8
 -----
 
