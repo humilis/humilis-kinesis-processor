@@ -6,7 +6,7 @@ import json
 import uuid
 
 
-NB_EVENTS = 5
+NB_EVENTS = 2
 
 
 @pytest.fixture(scope="function")

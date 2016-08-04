@@ -5,6 +5,7 @@ import logging
 import json
 
 import lambdautils.utils as utils
+from lambdautils.exception import CriticalError
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -28,10 +29,6 @@ def process_event(
         kinesis_event, deserializer=json.loads,
         embed_timestamp="receivedAt")
 
-    input_delivery_stream = input.get("firehose_delivery_stream")
-    if input_delivery_stream:
-        send_to_delivery_stream(events, input_delivery_stream)
-
     # The humilis context to pass to filters and mappers
     humilis_context = dict(environment=environment, layer=layer, stage=stage,
                            shard_id=shard_id, lambda_context=context)
@@ -39,9 +36,14 @@ def process_event(
     logger.info("Going to process {} events".format(len(events)))
     logger.info("First event: {}".format(pretty(events[0])))
 
-    events = process_input(input, events, humilis_context)
-    if not events:
-        return
+    if input:
+        input_delivery_stream = input.get("firehose_delivery_stream")
+        if input_delivery_stream:
+            send_to_delivery_stream(events, input_delivery_stream)
+
+        events = process_input(input, events, humilis_context)
+        if not events:
+            return
 
     oevents = produce_outputs(output, events, humilis_context)
 
@@ -92,7 +94,15 @@ def produce_outputs(output, events, context):
         if omapper:
             mapped_evs = []
             for ev in oevents[i]:
-                mapped_evs.append(omapper(ev, context))
+                res = omapper(ev, context)
+                if isinstance(res, dict):
+                    # 1-to-1 mapping: for backwards compatibility
+                    mapped_evs.append(res)
+                elif isinstance(res, list):
+                    # 1-to-many mapping
+                    mapped_evs += res
+                else:
+                    raise CriticalError("Mapper must return a list of dicts")
             oevents[i] = mapped_evs
             logger.info("Mapped {} events".format(len(oevents[i])))
             if mapped_evs:
@@ -121,7 +131,15 @@ def process_input(input, events, context):
         logger.info("Mapping input evets")
         mapped_evs = []
         for ev in events:
-            mapped_evs.append(input["mapper"](ev, context))
+            res = input["mapper"](ev, context)
+            if isinstance(res, dict):
+                # 1-to-1 mapping: for backwards compatibility
+                mapped_evs.append(res)
+            elif isinstance(res, list):
+                # 1-to-many mapping
+                mapped_evs += res
+            else:
+                raise CriticalError("Mapper must return a list of dicts")
 
         logger.info("First mapped input events: {}".format(
             pretty(mapped_evs[0])))
