@@ -24,9 +24,13 @@ def process_event(
     to a Kinesis Firehose delivery stream (for persistence in S3 and/or
     Redshift)"""
 
-    events, shard_id = utils.unpack_kinesis_event(
-        kinesis_event, deserializer=json.loads,
-        embed_timestamp="receivedAt")
+    try:
+        events, shard_id = utils.unpack_kinesis_event(
+            kinesis_event, deserializer=json.loads,
+            embed_timestamp="receivedAt")
+    except:
+        events = kinesis_event
+        shard_id = 1
 
     input_delivery_stream = input.get("firehose_delivery_stream")
     if input_delivery_stream:
