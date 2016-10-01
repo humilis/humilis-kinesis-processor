@@ -71,20 +71,65 @@ resources:
                     - "firehose:DescribeDeliveryStream"
                   Resource:
                     {% if meta_input.firehose_delivery_stream %}
+                    {% if meta_input.firehose_delivery_stream|is_list %}
+                    # Multiple input delivery streams
+                    {% for is in meta_input.firehose_delivery_stream %}
                     - "Fn::Join":
                       - ""
-                      - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "deliverystream/", "{{meta_input.firehose_delivery_stream}}"]
+                      - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":",
+                         {"Ref": "AWS::AccountId"}, ":",
+                         "deliverystream/",
+                         "{{is}}"]
+                    {% endfor %}
+                    {% else %}
+                    # Just one input delivery stream
+                    - "Fn::Join":
+                      - ""
+                      - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":",
+                         {"Ref": "AWS::AccountId"}, ":",
+                         "deliverystream/",
+                         "{{meta_input.firehose_delivery_stream}}"]
+                    {% endif %}
                     {% endif %}
                     {% if meta_error.firehose_delivery_stream %}
+                    {% if meta_error.firehose_delivery_stream|is_list %}
+                    # Multiple error delivery streams
+                    {% for es in meta_error.firehose_delivery_stream %}
                     - "Fn::Join":
                       - ""
-                      - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "deliverystream/", "{{meta_error.firehose_delivery_stream}}"]
+                      - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":",
+                         {"Ref": "AWS::AccountId"}, ":",
+                         "deliverystream/",
+                         "{{es}}"]
+                    {% endfor %}
+                    {% else %}
+                    # Just one error delivery stream
+                    - "Fn::Join":
+                      - ""
+                      - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":",
+                         {"Ref": "AWS::AccountId"}, ":", "deliverystream/",
+                         "{{meta_error.firehose_delivery_stream}}"]
+                    {% endif %}
                     {% endif %}
                     {% for os in meta_output %}
                     {% if os.firehose_delivery_stream %}
+                    {% if os.firehose_delivery_stream|is_list %}
+                    # Multiple error delivery streams
+                    {% for osi in os.firehose_delivery_stream %}
                     - "Fn::Join":
                       - ""
-                      - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "deliverystream/", "{{os.firehose_delivery_stream}}"]
+                      - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":",
+                         {"Ref": "AWS::AccountId"}, ":",
+                         "deliverystream/", "{{osi}}"]
+                    {% endfor %}
+                    {% else %}
+                    # Just one error delivery stream
+                    - "Fn::Join":
+                      - ""
+                      - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":",
+                         {"Ref": "AWS::AccountId"}, ":", "deliverystream/",
+                         "{{os.firehose_delivery_stream}}"]
+                    {% endif %}
                     {% endif %}
                     {% endfor %}
                 {% endif %}
@@ -103,7 +148,9 @@ resources:
                   Resource:
                     - "Fn::Join":
                       - ""
-                      - ["arn:aws:kinesis:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "stream/", "{{meta_input.kinesis_stream}}"]
+                      - ["arn:aws:kinesis:", {"Ref": "AWS::Region"},":",
+                         {"Ref": "AWS::AccountId"}, ":", "stream/",
+                         "{{meta_input.kinesis_stream}}"]
                   {% endif %}
                   {% if has_output_stream or meta_error.kinesis_stream %}
                 - Effect: Allow
@@ -115,13 +162,17 @@ resources:
                     {% if os.kinesis_stream %}
                     - "Fn::Join":
                       - ""
-                      - ["arn:aws:kinesis:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "stream/", "{{os.kinesis_stream}}"]
+                      - ["arn:aws:kinesis:", {"Ref": "AWS::Region"},":",
+                         {"Ref": "AWS::AccountId"}, ":", "stream/",
+                         "{{os.kinesis_stream}}"]
                     {% endif %}
                     {% endfor %}
                     {% if meta_error.kinesis_stream %}
                     - "Fn::Join":
                       - ""
-                      - ["arn:aws:kinesis:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "stream/", "{{meta_error.kinesis_stream}}"]
+                      - ["arn:aws:kinesis:", {"Ref": "AWS::Region"},":",
+                         {"Ref": "AWS::AccountId"}, ":", "stream/",
+                         "{{meta_error.kinesis_stream}}"]
                     {% endif %}
                   {% endif %}
                 - Effect: Allow
@@ -143,7 +194,8 @@ resources:
                   Resource:
                     - "Fn::Join":
                       - ""
-                      - ["arn:aws:dynamodb:", {"Ref": "AWS::Region"},":", {"Ref": "AWS::AccountId"}, ":", "table/", {"Ref": "StateTable"}]
+                      - ["arn:aws:dynamodb:", {"Ref": "AWS::Region"},":",
+                         {"Ref": "AWS::AccountId"}, ":", "table/", {"Ref": "StateTable"}]
                  {% endif %}
     {% if meta_input.kinesis_stream %}
     InputEventSourceMapping:

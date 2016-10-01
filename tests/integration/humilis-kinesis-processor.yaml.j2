@@ -5,6 +5,25 @@ humilis-kinesis-processor:
         A dummy environment for testing the map-uaparser processor
 
     layers:
+        # A S3 bucket to test Firehose delivery
+        - layer: storage
+
+        - layer: firehose-resource
+          layer_type: firehose-resource
+
+        - layer: s3delivery
+          layer_type: firehose
+          firehose_resource_layer: firehose-resource
+          keyring_group: "humilis/firehose/redshift"
+          s3_buffer_seconds: 60
+          streams:
+              - name: DeliveryStream1
+                prefix: stream1/
+              - name: DeliveryStream2
+                prefix: stream2/
+              - name: DeliveryStream3
+                prefix: stream3/
+
         # The I/O Kinesis streams
         - layer: streams
           layer_type: streams
@@ -37,6 +56,9 @@ humilis-kinesis-processor:
             kinesis_stream: {layer: streams, name: InputStream}
             filter: mypkg:input_filter
             mapper: mypkg.module:input_mapper
+            firehose_delivery_stream:
+              # Multiple delivery streams for the input are supported
+              - {layer: s3delivery, name: DeliveryStream3}
           error:
             kinesis_stream: {layer: streams, name: ErrorStream}
             filter: mypkg:error_filter
@@ -46,10 +68,16 @@ humilis-kinesis-processor:
             - filter: mypkg:output_filter_1
               mapper: mypkg:output_mapper_1
               kinesis_stream: {layer: streams, name: OutputStream1}
+              firehose_delivery_stream: {layer: s3delivery, name: DeliveryStream1}
               partition_key: mypkg:partition_key
+
             - mapper: mypkg:output_mapper_2
               # No filter specified: passthrough all
               kinesis_stream: {layer: streams, name: OutputStream2}
+              firehose_delivery_stream:
+                # Multiple delivery streams are supported
+                - {layer: s3delivery, name: DeliveryStream1}
+                - {layer: s3delivery, name: DeliveryStream2}
               partition_key: mypkg:partition_key
 
         # Keeps secrets: the Sentry token

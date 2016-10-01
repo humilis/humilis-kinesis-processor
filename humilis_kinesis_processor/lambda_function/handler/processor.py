@@ -43,7 +43,8 @@ def process_event(
     if input:
         input_delivery_stream = input.get("firehose_delivery_stream")
         if input_delivery_stream:
-            send_to_delivery_stream(events, input_delivery_stream)
+            for stream in input_delivery_stream:
+                send_to_delivery_stream(events, stream)
 
         events = process_input(input, events, humilis_context)
         if not events:
@@ -73,7 +74,8 @@ def deliver_outputs(output, oevents):
 
         delivery_stream = o.get("firehose_delivery_stream")
         if delivery_stream:
-            send_to_delivery_stream(oevents[i], delivery_stream)
+            for stream in delivery_stream:
+                send_to_delivery_stream(oevents[i], stream)
         else:
             logger.info("No FH delivery stream: not forwarding to FH")
 

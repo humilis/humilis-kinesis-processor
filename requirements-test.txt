@@ -16,6 +16,8 @@ user-agents
 
 # We also need these layers
 -e git+https://github.com/humilis/humilis-streams#egg=humilis-streams
+-e git+https://github.com/humilis/humilis-firehose#egg=humilis-firehose
+-e git+https://github.com/humilis/humilis-firehose-resource#egg=humilis-firehose-resource
 -e git+https://github.com/humilis/humilis-secrets-vault#egg=humilis-secrets-vault
 
 werkzeug

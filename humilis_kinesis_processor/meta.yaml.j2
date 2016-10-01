@@ -81,13 +81,21 @@ meta:
                 {% if s.firehose_delivery_stream %}
                 firehose_delivery_stream:
                     {% if s.firehose_delivery_stream is mapping %}
-                    ref:
+                    - ref:
                         parser: output
                         parameters:
                             layer_name: {{s.firehose_delivery_stream.layer}}
                             output_name: {{s.firehose_delivery_stream.name}}
+                    {% elif s.firehose_delivery_stream|is_list %}
+                    {% for ds in s.firehose_delivery_stream %}
+                    - ref:
+                        parser: output
+                        parameters:
+                            layer_name: {{ds.layer}}
+                            output_name: {{ds.name}}
+                    {% endfor %}
                     {% else %}
-                    {# user is passing directly the name of the delivery stream #}
+                    # user is passing directly the name of the delivery stream
                     {{s.firehose_delivery_stream}}
                     {% endif %}
                 {% endif %}
@@ -123,13 +131,21 @@ meta:
                   {% if s.firehose_delivery_stream %}
                   firehose_delivery_stream:
                       {% if s.firehose_delivery_stream is mapping %}
-                      {# user is passing a reference to another layer output #}
-                      ref:
+                      - ref:
                           parser: output
                           parameters:
                               layer_name: {{s.firehose_delivery_stream.layer}}
                               output_name: {{s.firehose_delivery_stream.name}}
+                      {% elif s.firehose_delivery_stream|is_list %}
+                      {% for ds in s.firehose_delivery_stream %}
+                      - ref:
+                          parser: output
+                          parameters:
+                              layer_name: {{ds.layer}}
+                              output_name: {{ds.name}}
+                      {% endfor %}
                       {% else %}
+                      # user is passing directly the name of the delivery stream
                       {{s.firehose_delivery_stream}}
                       {% endif %}
                   {% endif %}

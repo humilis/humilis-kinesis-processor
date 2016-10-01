@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.7.7
+-----
+
+- Support for multiple delivery streams for input, error, and output(s)
+
 0.7.6
 -----
 

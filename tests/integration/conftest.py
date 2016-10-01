@@ -30,6 +30,9 @@ def environment(settings):
         env.create()
     yield env
     if os.environ.get("DESTROY", "yes") == "yes":
+        # Empty the S3 bucket
+        bucket = env.outputs["storage"]["BucketName"]
+        os.system("aws s3 rm s3://{} --recursive".format(bucket))
         env.delete()
 
 
