@@ -14,7 +14,6 @@ humilis-kinesis-processor:
         - layer: s3delivery
           layer_type: firehose
           firehose_resource_layer: firehose-resource
-          keyring_group: "humilis/firehose/redshift"
           s3_buffer_seconds: 60
           streams:
               - name: DeliveryStream1
