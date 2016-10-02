@@ -14,7 +14,7 @@ import keyring
 NAMESPACE = "humilis-kinesis-processor:{stage}"
 
 # Map local secret keys to secret keys in the event tracker vault
-SECRETS = {"sentry.dsn": "sentry.dsn", "graphite.api_key": "graphite.api_key"}
+SECRETS = {"sentry.dsn": "sentry.dsn"}
 
 
 def deploy_secrets(environment_file, stage="dev"):
