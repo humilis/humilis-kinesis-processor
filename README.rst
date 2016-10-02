@@ -39,31 +39,65 @@ Configure humilis:
 Testing
 -------
 
+Unit tests
+~~~~~~~~~~
+
 To run the local test suite:
 
 ::
 
     make test
 
-You can test the deployment of the Lambda function using:
+
+Integration tests
+~~~~~~~~~~~~~~~~~
+
+Before running the integration test suite you need to set a few deployment 
+secrets using the command::
+
+..code:: bash
+
+    s3keyring set [group]:[STAGE] [key] [secret]
+
+In group ``humilis-kinesis-processor`` the following secrets need to be set:
+
+* ``sentry.dsn``: The `Sentry DSN <https://docs.getsentry.com/hosted/quickstart/#configure-the-dsn>`__.
+
+
+By the default, the integration tests will deploy on a stage called ``DEV`` so
+the command to set the Sentry DSN is::
+
+..code:: bash
+
+    s3keyring set humilis-kinesis-processor:DEV sentry.dsn [SENTRYDSN]
+
+
+To run the integration test suite::
 
 .. code:: bash
-
-    make create
-
-The command above will also create additional resources (such as several
-Kinesis streams) needed to test that the deployment was successful. Once
-deployed you can run the integration test suite using:
-
-::
 
     make testi
 
-Don't forget to delete the test deployment after you are done:
+The command above will deploy a Kinesis processor to your AWS account, and will
+also create additional resources (such as several Kinesis streams) needed to
+test that the deployment was successful. Once deployed, the integration tests
+will run, and once they have completed the test environment will be destroyed.
+
+If you do not want the test environment to be destroyed after tests have 
+completed you should run instead::
 
 .. code:: bash
 
-    make delete
+    make testi DESTROY=no
+
+You can also modify the name of the deployment stage by setting the ``STAGE``
+environment variable. For instance, to deploy to a ``TEST`` stage:
+
+.. code:: bash
+
+    make testi STAGE=TEST
+
+
 
 More information
 ----------------
