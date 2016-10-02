@@ -12,10 +12,14 @@ from humilis.environment import Environment
 def settings():
     """Global test settings."""
     Settings = namedtuple('Settings',
-                          'stage environment_path streams_layer_name')
+                          'stage environment_path streams_layer_name '
+                          'output_path')
+    envfile = "tests/integration/humilis-kinesis-processor"
+    stage = os.environ.get("STAGE", "DEV")
     return Settings(
-        stage=os.environ.get("STAGE", "DEV"),
-        environment_path="tests/integration/humilis-kinesis-processor.yaml.j2",
+        stage=stage,
+        environment_path="{}.yaml.j2".format(envfile),
+        output_path="{}-{}.outputs.yaml".format(envfile, stage),
         streams_layer_name="streams")
 
 
@@ -25,9 +29,9 @@ def environment(settings):
     removing it after tests have run."""
     env = Environment(settings.environment_path, stage=settings.stage)
     if os.environ.get("UPDATE", "yes") == "yes":
-        env.create(update=True)
+        env.create(update=True, output_file=settings.output_path)
     else:
-        env.create()
+        env.create(output_file=settings.output_path)
     yield env
     if os.environ.get("DESTROY", "yes") == "yes":
         # Empty the S3 bucket

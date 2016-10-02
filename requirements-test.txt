@@ -4,6 +4,7 @@ pytest
 pytest-cov
 tox
 mock
+pyyaml
 
 user-agents
 
