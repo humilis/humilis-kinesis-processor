@@ -1,4 +1,4 @@
-"""Global conftest."""
+"""Integration tests conftest."""
 import pytest
 from collections import namedtuple
 import os
