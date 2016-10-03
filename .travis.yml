@@ -4,5 +4,5 @@ python:
 script:
 - make clean
 - make test
-- make testi
-- make delete
+#- make testi
+#- make delete
