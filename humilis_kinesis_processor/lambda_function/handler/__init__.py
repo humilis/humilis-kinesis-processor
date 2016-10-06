@@ -12,7 +12,6 @@ from werkzeug.utils import import_string  # noqa
 from .processor import process_event
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
 
 os.environ["HUMILIS_ENVIRONMENT"] = "{{_env.name}}"
 os.environ["HUMILIS_STAGE"] = "{{_env.stage}}"

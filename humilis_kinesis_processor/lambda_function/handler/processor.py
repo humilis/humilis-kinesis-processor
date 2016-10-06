@@ -8,7 +8,6 @@ import lambdautils.utils as utils
 from lambdautils.exception import CriticalError
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
 
 
 class KinesisError(Exception):
