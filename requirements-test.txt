@@ -25,3 +25,7 @@ werkzeug
 
 # Install non-recommended keyring backends
 keyrings.alt
+
+# Linters for vim
+pylama
+pylint

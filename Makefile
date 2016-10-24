@@ -9,8 +9,13 @@ HUMILIS_ENV := tests/integration/humilis-kinesis-processor
 .env:
 	virtualenv .env -p python3
 
+# install AWS Lambda like virtualenv
+.lambda:
+	virtualenv .lambda -p python2.7
+	.lambda/bin/pip install -r requirements-lambda.txt
+
 # install dev dependencies, create layers directory
-develop: .env
+develop: .env .lambda
 	$(PIP) install -r requirements-test.txt
 
 # run unit tests
@@ -25,7 +30,8 @@ testi: .env
 
 # remove .tox and .env dirs
 clean:
-	rm -rf .env .tox
+	rm -rf .env .tox .lambda tests/*.pyc tests/__pycache__ \
+		humilis_kinesis_processor/*.pyc humilis_kinesis_processor/__pycache__
 
 # deploy secrets to the environment secrets vault
 secrets:

@@ -1,6 +1,7 @@
 /build
 /dist
 .env
+.lambda
 .envi
 .cache
 .coverage

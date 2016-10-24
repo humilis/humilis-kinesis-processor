@@ -57,11 +57,11 @@ secrets using the command::
 
 ..code:: bash
 
-    s3keyring set [group]:[STAGE] [key] [secret]
+    s3keyring set [group]/[STAGE] [key] [secret]
 
 In group ``humilis-kinesis-processor`` the following secrets need to be set:
 
-* ``sentry.dsn``: The `Sentry DSN <https://docs.getsentry.com/hosted/quickstart/#configure-the-dsn>`__.
+* ``sentry/dsn``: The `Sentry DSN <https://docs.getsentry.com/hosted/quickstart/#configure-the-dsn>`__.
 
 
 By the default, the integration tests will deploy on a stage called ``DEV`` so
