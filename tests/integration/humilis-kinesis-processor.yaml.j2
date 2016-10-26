@@ -60,8 +60,6 @@ humilis-kinesis-processor:
               - {layer: s3delivery, name: DeliveryStream3}
           error:
             kinesis_stream: {layer: streams, name: ErrorStream}
-            filter: mypkg:error_filter
-            mapper: mypkg:error_mapper
             partition_key: False
           output:
             - filter: mypkg:output_filter_1

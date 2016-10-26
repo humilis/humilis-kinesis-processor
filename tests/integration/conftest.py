@@ -1,11 +1,16 @@
 """Integration tests conftest."""
-import pytest
+
 from collections import namedtuple
 import os
 import time
 
+import pytest
+
 import boto3
 from humilis.environment import Environment
+from s3keyring.s3 import S3Keyring
+
+keyring = S3Keyring(config_file=".s3keyring.ini")
 
 
 @pytest.fixture(scope="session")
@@ -32,6 +37,10 @@ def environment(settings):
         env.create(update=True, output_file=settings.output_path)
     else:
         env.create(output_file=settings.output_path)
+
+    val = keyring.get_password(
+        "humilis-kinesis-processor/{}".format(settings.stage), "sentry/dsn")
+    env.set_secret("sentry.dsn", val)
     yield env
     if os.environ.get("DESTROY", "yes") == "yes":
         # Empty the S3 bucket
@@ -50,6 +59,14 @@ def output_stream_name(settings, environment):
 
 
 @pytest.fixture(scope="session")
+def error_stream_name(settings, environment):
+    """The name of the error Kinesis stream."""
+    layer = [l for l in environment.layers
+             if l.name == settings.streams_layer_name][0]
+    return [(layer.outputs.get("ErrorStream"), 1)]
+
+
+@pytest.fixture(scope="session")
 def input_stream_name(settings, environment):
     """The name of the output Kinesis stream."""
     layer = [l for l in environment.layers
@@ -60,26 +77,7 @@ def input_stream_name(settings, environment):
 @pytest.fixture(scope="session")
 def kinesis():
     """Boto3 kinesis client."""
-    region = os.environ.get("AWS_REGION") or "eu-west-1"
+    region = os.environ.get("AWS_DEFAULT_REGION") or "eu-west-1"
     return boto3.client("kinesis", region_name=region)
 
 
-@pytest.fixture(scope="function")
-def shard_iterators(kinesis, output_stream_name):
-    """Get the latest shard iterator after emptying a shard."""
-    sis = []
-    for stream_name, nb_shards in output_stream_name:
-        for shard in range(nb_shards):
-            si = kinesis.get_shard_iterator(
-                StreamName=stream_name,
-                ShardId="shardId-{0:012d}".format(shard),
-                ShardIteratorType="LATEST")["ShardIterator"]
-            # At most 5 seconds to empty the shard
-            for _ in range(10):
-                kinesis_recs = kinesis.get_records(ShardIterator=si,
-                                                   Limit=1000)
-                si = kinesis_recs["NextShardIterator"]
-                time.sleep(0.2)
-            sis.append(si)
-
-    return sis

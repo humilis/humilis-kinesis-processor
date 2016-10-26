@@ -2,12 +2,12 @@
 
 import copy
 
+from lambdautils.exception import CriticalError
 from mock import Mock
-
 import pytest
 
 from humilis_kinesis_processor.lambda_function.handler.processor import process_event  # noqa
-from lambdautils.exception import CriticalError
+from . import make_kinesis_event
 
 
 def _identity(ev, state_args=None, **kwargs):
@@ -57,34 +57,28 @@ def _make_output(filter=None, mapper=None, kstream=None, fstream=None, n=1):
 
 
 @pytest.mark.parametrize(
-    "e,l,s,i,os,kputs,fputs", [
-        ["e", "l", "s",
-         _make_input(kstream="k"),
-         _make_output(_all, _dupper, "k", "f", 2), 2, 2],
-        ["e", "l", "s",
-         _make_input(kstream="k"),
-         _make_output(_all, _identity, "k", "f", 2), 2, 2],
-        ["e", "l", "s",
-         _make_input(kstream="k"),
-         _make_output(_all, _identity, "k", None, 2), 2, 0],
-        ["e", "l", "s",
-         _make_input(kstream="k"),
-         _make_output(_all, _identity, None, "k", 2), 0, 2],
-        ["e", "l", "s",
-         _make_input(kstream="k"),
-         _make_output(_all, _identity, None, None, 2), 0, 0],
-        ["e", "l", "s",
-         _make_input(_none, None, "k"),
-         _make_output(_all, _identity, "k", "f"), 0, 0],
-        ["e", "l", "s",
-         _make_input(_all, _identity, "k"),
+    "i,os,kputs,fputs", [
+        [[], [], 0, 0],
+        [_make_input(_all, _identity, "k"),
          _make_output(_none, _identity, "k", "f", 2), 0, 0],
-        ["e", "l", "s", [], [], 0, 0]
+        [_make_input(_none, None, "k"),
+         _make_output(_all, _identity, "k", "f"), 0, 0],
+        [_make_input(kstream="k"),
+         _make_output(_all, _dupper, "k", "f", 2), 2, 2],
+        [_make_input(kstream="k"),
+         _make_output(_all, _identity, "k", "f", 2), 2, 2],
+        [_make_input(kstream="k"),
+         _make_output(_all, _identity, "k", None, 2), 2, 0],
+        [_make_input(kstream="k"),
+         _make_output(_all, _identity, None, "k", 2), 0, 2],
+        [_make_input(kstream="k"),
+         _make_output(_all, _identity, None, None, 2), 0, 0],
         ])
-def test_process_event(e, l, s, i, os, kputs, fputs, kinesis_event, events,
-                       context, boto3_client, monkeypatch):
+def test_process_event(i, os, kputs, fputs, kinesis_record_template,
+                       sample_records, context, boto3_client, monkeypatch):
     """Process events."""
-    process_event(kinesis_event, context, "e", "l", "s", i, os)
+    kinesis_event = make_kinesis_event(kinesis_record_template, sample_records)
+    process_event(kinesis_event, context, i, os)
 
     assert boto3_client("kinesis").put_records.call_count == kputs
     assert boto3_client("firehose").put_record_batch.call_count == fputs
@@ -94,9 +88,10 @@ def test_process_event(e, l, s, i, os, kputs, fputs, kinesis_event, events,
     else:
         ifilter = None
 
+    nbrecs = len(sample_records)
     if ifilter:
-        assert ifilter.call_count == len(events)
-        # Need to reset the call count because events is a parametrized fixture
+        assert ifilter.call_count == nbrecs
+        # Reset the call count between parametrized invocations of the test
         ifilter.reset_mock()
 
     if i:
@@ -106,46 +101,49 @@ def test_process_event(e, l, s, i, os, kputs, fputs, kinesis_event, events,
 
     if imapper:
         if ifilter is None or ifilter.side_effect == _all:
-            assert imapper.call_count == len(events)
+            assert imapper.call_count == nbrecs
         elif ifilter.side_effect == _none:
             assert imapper.call_count == 0
 
         imapper.reset_mock()
 
-    for o in os:
-        ofilter = o.get("filter")
+    for outputp in os:
+        ofilter = outputp.get("filter")
         if ofilter:
             if ifilter is None or ifilter == _all:
-                assert ofilter.call_count == len(events)
+                assert ofilter.call_count == nbrecs
             ofilter.reset_mock()
 
-        omapper = o.get("mapper")
-        pk = o.get("partition_key")
+        omapper = outputp.get("mapper")
+        pkey = outputp.get("partition_key")
         if (ifilter is None or ifilter.side_effect == _all) and \
                 (ofilter is None or ofilter.side_effect == _all):
             if omapper:
-                assert omapper.call_count == len(events)
-            if pk:
-                assert pk.call_count == len(events)
+                assert omapper.call_count == nbrecs
+            if pkey:
+                assert pkey.call_count == nbrecs
         else:
             if omapper:
                 assert omapper.call_count == 0
-            if pk:
-                assert pk.call_count == 0
+            if pkey:
+                assert pkey.call_count == 0
 
         if omapper:
             omapper.reset_mock()
 
-        if pk:
-            pk.reset_mock()
+        if pkey:
+            pkey.reset_mock()
 
 
-def test_bad_callable(kinesis_event, context):
-    """Bad mappers should raise an exception."""
+def test_bad_mapper_signature(
+        kinesis_record_template, sample_records, context):
+    """Mappers with wrong interfaces should raise CriticalError."""
 
-    def bad_mapper(ev, context):
-        return "I should never return a string!"
+    def bad_mapper(event, context):
+        """A mapper that does not fulfill the mapper interface."""
+        return "Hi there!"
 
-    os = [{"mapper": Mock(side_effect=bad_mapper)}]
+    kinesis_event = make_kinesis_event(kinesis_record_template, sample_records)
+    outputp = [{"mapper": Mock(side_effect=bad_mapper)}]
     with pytest.raises(CriticalError):
-        process_event(kinesis_event, context, "e", "l", "s", [], os)
+        process_event(kinesis_event, context, [], outputp)

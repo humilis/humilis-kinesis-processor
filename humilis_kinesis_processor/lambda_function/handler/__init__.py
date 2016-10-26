@@ -145,8 +145,4 @@ def lambda_handler(event, context):
         # make sentry_monitor re-reraise after notifying sentry
         raise utils.CriticalError(exception)
 
-    return process_event(
-        event, context, "{{_env.name}}", "{{_layer.name}}", "{{_env.stage}}",
-        input=input,
-        output=output
-    )
+    return process_event(event, context, input, output)
