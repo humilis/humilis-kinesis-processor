@@ -80,7 +80,7 @@ completed you should run instead::
    make testi DESTROY=no
 
 You can also modify the name of the deployment stage by setting the ``STAGE``
-environment variable. For instance, to deploy to a ``TEST`` stage:
+environment variable. For instance, to deploy to a ``TEST`` stage::
 
    make testi STAGE=TEST
 
