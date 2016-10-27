@@ -67,7 +67,7 @@ In group ``humilis-kinesis-processor`` the following secrets need to be set:
 By the default, the integration tests will deploy on a stage called ``DEV`` so
 the command to set the Sentry DSN is::
 
-..code:: bash
+.. code:: bash
 
     s3keyring set humilis-kinesis-processor:DEV sentry.dsn [SENTRYDSN]
 
@@ -119,4 +119,4 @@ This software is licensed under the `MIT license <http://en.wikipedia.org/wiki/M
 See `License file <https://github.com/humilis/humilis-kinesis-processor/blob/master/LICENSE.txt>`_
 
 
-© 2016 Anatoly Bubenkov, `FindHotel <http://company.findhotel.net>`_ and others.
+© 2016 Anatoly Bubenkov, German Gomez-Herrero, `FindHotel <http://company.findhotel.net>`_ and others.
