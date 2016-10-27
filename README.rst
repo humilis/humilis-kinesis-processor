@@ -82,7 +82,7 @@ completed you should run instead::
 You can also modify the name of the deployment stage by setting the ``STAGE``
 environment variable. For instance, to deploy to a ``TEST`` stage:
 
-    make testi STAGE=TEST
+   make testi STAGE=TEST
 
 
 
