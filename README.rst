@@ -30,9 +30,7 @@ Assuming you have
 
     make develop
 
-Configure humilis:
-
-::
+Configure humilis::
 
     .env/bin/humilis configure --local
 
@@ -42,9 +40,7 @@ Testing
 Unit tests
 ~~~~~~~~~~
 
-To run the local test suite:
-
-::
+To run the local test suite::
 
     make test
 
@@ -55,9 +51,8 @@ Integration tests
 Before running the integration test suite you need to set a few deployment 
 secrets using the command::
 
-.. code:: bash
-
     s3keyring set [group]/[STAGE] [key] [secret]
+
 
 In group ``humilis-kinesis-processor`` the following secrets need to be set:
 
@@ -67,14 +62,10 @@ In group ``humilis-kinesis-processor`` the following secrets need to be set:
 By the default, the integration tests will deploy on a stage called ``DEV`` so
 the command to set the Sentry DSN is::
 
-.. code:: bash
-
     s3keyring set humilis-kinesis-processor:DEV sentry.dsn [SENTRYDSN]
 
 
 To run the integration test suite::
-
-.. code:: bash
 
     make testi
 
@@ -86,14 +77,10 @@ will run, and once they have completed the test environment will be destroyed.
 If you do not want the test environment to be destroyed after tests have 
 completed you should run instead::
 
-.. code:: bash
-
-    make testi DESTROY=no
+   make testi DESTROY=no
 
 You can also modify the name of the deployment stage by setting the ``STAGE``
 environment variable. For instance, to deploy to a ``TEST`` stage:
-
-.. code:: bash
 
     make testi STAGE=TEST
 
