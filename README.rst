@@ -119,4 +119,4 @@ This software is licensed under the `MIT license <http://en.wikipedia.org/wiki/M
 See `License file <https://github.com/humilis/humilis-kinesis-processor/blob/master/LICENSE.txt>`_
 
 
-© 2016 Anatoly Bubenkov, `FindHotel <http://company.findhotel.net>`_ and others.
+© 2016 * Anatoly Bubenkov, German Gomez-Herrero, `FindHotel <http://company.findhotel.net>`_ and others.
