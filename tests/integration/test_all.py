@@ -57,7 +57,7 @@ def test_io_streams_put_get_record(
     retrieved_ids = {x["id"] for x in retrieved_recs}
     put_ids = {x['id'] for x in sample_records}
     assert not retrieved_ids.difference(put_ids)
-    assert all("input_filter" in ev and "input_mapper" in ev and
+    assert all("input_filter" not in ev and "input_mapper" in ev and
                "received_at" in ev for ev in retrieved_recs)
 
 
@@ -80,7 +80,7 @@ def test_set_get_state(
     retrieved_id = retrieved_event["id"]
     put_id = sample_records[0]["id"]
     assert put_id == retrieved_id
-    assert "input_filter" in retrieved_event \
+    assert "input_filter" not in retrieved_event \
         and "input_mapper" in retrieved_event \
         and "received_at" in retrieved_event
 
@@ -101,7 +101,7 @@ def _retrieve_records(nbrecs, kinesis, shard_iterators):
     """Retrieve records from the output Kinesis stream."""
     retrieved_recs = []
     # Just some rule-of-thumb timeout
-    timeout = min(max(10, 5 * nbrecs), 120)
+    timeout = min(max(20, 5 * nbrecs), 120)
     for shard_iterator in shard_iterators:
         retrieved_recs += get_all_records(
             kinesis, shard_iterator, nbrecs, timeout)
