@@ -55,7 +55,7 @@ Integration tests
 Before running the integration test suite you need to set a few deployment 
 secrets using the command::
 
-..code:: bash
+.. code:: bash
 
     s3keyring set [group]/[STAGE] [key] [secret]
 
