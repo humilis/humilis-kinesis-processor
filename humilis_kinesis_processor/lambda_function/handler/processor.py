@@ -117,7 +117,7 @@ def produce_outputs(outputs, events, context):
         logger.info("Producing output #%s", oindex)
         # An event must succeed in all outputs to be considered successful
         processed, this_failed, events = run_pipeline(
-            output, [copy.deepcopy(ev) for ev in events], context, "output")
+            output, copy.deepcopy(events), context, "output")
         failed += this_failed
         oevents.append(processed)
 
@@ -162,7 +162,7 @@ def _filter_events(filterf, events, context):
     selected = []
     for index, event in enumerate(events):
         try:
-            if filterf(event, context):
+            if filterf(copy.deepcopy(event), context):
                 selected.append(event)
             succeeded.append(event)
         except CriticalError:
