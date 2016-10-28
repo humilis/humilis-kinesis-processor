@@ -188,7 +188,7 @@ def _map_events(mapf, events, context):
     mapped = []
     for index, event in enumerate(events):
         try:
-            mapped_events = mapf(event, context)
+            mapped_events = mapf(copy.deepcopy(event), context)
             if isinstance(mapped_events, dict):
                 # 1-to-1 mapping: for backwards compatibility
                 mapped.append(mapped_events)
