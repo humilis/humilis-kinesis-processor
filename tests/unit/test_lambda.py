@@ -8,6 +8,7 @@ import pytest
 
 from humilis_kinesis_processor.lambda_function.handler.processor import process_event  # noqa
 from . import make_kinesis_event
+from .. import make_records
 
 
 def _identity(ev, state_args=None, **kwargs):
@@ -75,37 +76,27 @@ def _make_output(filter=None, mapper=None, kstream=None, fstream=None, n=1):
          _make_output(_all, _identity, None, None, 2), 0, 0],
         ])
 def test_process_event(i, os, kputs, fputs, kinesis_record_template,
-                       sample_records, context, boto3_client, monkeypatch):
+                       context, boto3_client, monkeypatch):
     """Process events."""
+    sample_records = make_records(2)
     kinesis_event = make_kinesis_event(kinesis_record_template, sample_records)
     process_event(kinesis_event, context, i, os)
 
     assert boto3_client("kinesis").put_records.call_count == kputs
     assert boto3_client("firehose").put_record_batch.call_count == fputs
 
+    nbrecs = len(sample_records)
+    _assert_ifilter_call_count(i, nbrecs)
+    _assert_imapper_call_count(i, nbrecs)
+    _assert_outputs(i, os, nbrecs)
+
+
+def _assert_outputs(i, os, nbrecs):
+    """Check that the output pipelines behave as expected."""
+
+    ifilter = None
     if i:
         ifilter = i.get("filter")
-    else:
-        ifilter = None
-
-    nbrecs = len(sample_records)
-    if ifilter:
-        assert ifilter.call_count == nbrecs
-        # Reset the call count between parametrized invocations of the test
-        ifilter.reset_mock()
-
-    if i:
-        imapper = i.get("mapper")
-    else:
-        imapper = None
-
-    if imapper:
-        if ifilter is None or ifilter.side_effect == _all:
-            assert imapper.call_count == nbrecs
-        elif ifilter.side_effect == _none:
-            assert imapper.call_count == 0
-
-        imapper.reset_mock()
 
     for outputp in os:
         ofilter = outputp.get("filter")
@@ -135,14 +126,44 @@ def test_process_event(i, os, kputs, fputs, kinesis_record_template,
             pkey.reset_mock()
 
 
-def test_bad_mapper_signature(
-        kinesis_record_template, sample_records, context):
+
+def _assert_imapper_call_count(i, call_count):
+    """Check that the input mapper, if applicable, has been called."""
+    ifilter = None
+    imapper = None
+    if i:
+        imapper = i.get("mapper")
+        ifilter = i.get("filter")
+
+    if imapper:
+        if ifilter is None or ifilter.side_effect == _all:
+            assert imapper.call_count == call_count
+        elif ifilter.side_effect == _none:
+            assert imapper.call_count == 0
+
+        imapper.reset_mock()
+
+
+def _assert_ifilter_call_count(i, call_count):
+    """Check that the input filter, if present, has been called."""
+    ifilter = None
+    if i:
+        ifilter = i.get("filter")
+
+    if ifilter:
+        assert ifilter.call_count == call_count
+        # Reset the call count between parametrized invocations of the test
+        ifilter.reset_mock()
+
+
+def test_bad_mapper_signature(kinesis_record_template, context):
     """Mappers with wrong interfaces should raise CriticalError."""
 
     def bad_mapper(event, context):
         """A mapper that does not fulfill the mapper interface."""
         return "Hi there!"
 
+    sample_records = make_records(2)
     kinesis_event = make_kinesis_event(kinesis_record_template, sample_records)
     outputp = [{"mapper": Mock(side_effect=bad_mapper)}]
     with pytest.raises(CriticalError):
