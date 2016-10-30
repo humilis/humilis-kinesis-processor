@@ -2,7 +2,7 @@
 
 import copy
 
-from lambdautils.exception import CriticalError
+from lambdautils.exception import CriticalError, ProcessingError
 from mock import Mock
 import pytest
 
@@ -11,27 +11,58 @@ from . import make_kinesis_event
 from .. import make_records
 
 
-def _identity(ev, state_args=None, **kwargs):
+def _identity(ev, *args, **kwargs):
     """An identity mapper callable."""
     return ev
 
 
-def _all(ev, state_args=None, **kwargs):
+def _all(ev, *args, **kwargs):
     """A pass-all filter callable."""
     return True
 
 
+def _filter_by_index(index):
+    """Produce filter callable that filters by index field."""
+    def func(ev, *args, **kwargs):
+        """Let pass event by the value of the index field."""
+        if ev.get("index") == index:
+            return True
+        else:
+            return False
+    return func
+
+
+def _raise_by_index(index):
+    """Callable that raises an exception for events with a given index."""
+
+    class DummyException(Exception):
+
+        """A Dummy exception for testing purposes."""
+
+        pass
+
+    def func(ev, *args, **kwargs):
+        """Raise an exception if the input event has the given index."""
+        if ev.get("index") == index:
+            raise DummyException("This is a dummy")
+        else:
+            return ev
+
+    return func
+
+
 def _dupper(ev, state_args=None, **kwargs):
-    """Duplicates every input event."""
+    """Mapper that duplicates every input event."""
     return [ev, ev]
 
 
 def _none(ev, state_args=None, **kwargs):
-    """A pass-none filter callable."""
+    """A pass-none filter."""
     return False
 
 
 def _make_input(filter=None, mapper=None, kstream=None):
+    """Make input specs for processor."""
     input = {}
     if filter is not None:
         input["filter"] = Mock(side_effect=filter)
@@ -43,7 +74,8 @@ def _make_input(filter=None, mapper=None, kstream=None):
     return input
 
 
-def _make_output(filter=None, mapper=None, kstream=None, fstream=None, n=1):
+def _make_output(filter=None, mapper=None, kstream=None, fstream=None):
+    """Make outputs specs for processor."""
     o = {}
     if filter is not None:
         o["filter"] = Mock(side_effect=filter)
@@ -54,106 +86,83 @@ def _make_output(filter=None, mapper=None, kstream=None, fstream=None, n=1):
     if fstream is not None:
         o["firehose_delivery_stream"] = fstream
 
-    return [copy.deepcopy(o) for _ in range(n)]
+    return o
 
 
 @pytest.mark.parametrize(
-    "i,os,kputs,fputs", [
-        [[], [], 0, 0],
-        [_make_input(_all, _identity, "k"),
-         _make_output(_none, _identity, "k", "f", 2), 0, 0],
+    "i,os,kputs,fputs,orecs", [
+        [_make_input(kstream="k"),
+         [
+             _make_output(_filter_by_index(0), _dupper, None, "f"),
+             _make_output(_filter_by_index(1), None, "k", None)]
+         , 1, 1, [2, 1]],
+        [_make_input(kstream="k"),
+         [
+             _make_output(_filter_by_index(0), None, None, "f"),
+             _make_output(_filter_by_index(1), None, "k", None)]
+         , 1, 1, [1, 1]],
+        [[], [], 0, 0, [0]],
         [_make_input(_none, None, "k"),
-         _make_output(_all, _identity, "k", "f"), 0, 0],
+         [_make_output(_all, _identity, "k", "f")], 0, 0, [0]],
+        [_make_input(_all, _identity, "k"),
+         [_make_output(_none, _identity, "k", "f")], 0, 0, [0]],
         [_make_input(kstream="k"),
-         _make_output(_all, _dupper, "k", "f", 2), 2, 2],
+         [_make_output(_all, _dupper, "k", "f")], 1, 1, [4]],
         [_make_input(kstream="k"),
-         _make_output(_all, _identity, "k", "f", 2), 2, 2],
+         [_make_output(_all, _identity, "k", "f")], 1, 1, [2]],
         [_make_input(kstream="k"),
-         _make_output(_all, _identity, "k", None, 2), 2, 0],
+            [_make_output(_all, _identity, "k", None)], 1, 0, [2]],
         [_make_input(kstream="k"),
-         _make_output(_all, _identity, None, "k", 2), 0, 2],
+         [_make_output(_all, _identity, None, "k")], 0, 1, [2]],
         [_make_input(kstream="k"),
-         _make_output(_all, _identity, None, None, 2), 0, 0],
+         [_make_output(_all, _identity, None, None)], 0, 0, [2]],
+        [_make_input(kstream="k"),
+         [_make_output(_all, _identity, None, None)], 0, 0, [2]]
         ])
-def test_process_event(i, os, kputs, fputs, kinesis_record_template,
-                       context, boto3_client, monkeypatch):
-    """Process events."""
+def test_process_event(i, os, kputs, fputs, orecs, kinesis_record_template,
+                       context, boto3_client):
+    """Test processing events."""
     sample_records = make_records(2)
     kinesis_event = make_kinesis_event(kinesis_record_template, sample_records)
-    process_event(kinesis_event, context, i, os)
-
+    oevents = process_event(kinesis_event, context, i, os)
     assert boto3_client("kinesis").put_records.call_count == kputs
     assert boto3_client("firehose").put_record_batch.call_count == fputs
-
-    nbrecs = len(sample_records)
-    _assert_ifilter_call_count(i, nbrecs)
-    _assert_imapper_call_count(i, nbrecs)
-    _assert_outputs(i, os, nbrecs)
+    assert len(oevents) == len(os)
+    for index, evs in enumerate(oevents):
+        assert len(evs) == orecs[index]
 
 
-def _assert_outputs(i, os, nbrecs):
-    """Check that the output pipelines behave as expected."""
+@pytest.mark.parametrize(
+    "i,os,kputs,fputs,frecs", [
+        [_make_input(kstream="k"),
+         [
+             _make_output(_raise_by_index(0), _dupper, None, "f"),
+             _make_output(_raise_by_index(1), None, "k", None)],
+         1, 1, 2],
+        ])
+def test_handle_errors(i, os, kputs, fputs, frecs, kinesis_record_template,
+                       context, boto3_client, monkeypatch):
+    """Test handling processing errors."""
+    sample_records = make_records(2)
+    kinesis_event = make_kinesis_event(kinesis_record_template, sample_records)
 
-    ifilter = None
-    if i:
-        ifilter = i.get("filter")
+    def raise_processing_error(*args, **kwargs):
+        """Raise a ProcessingError exception."""
+        raise_processing_error.args = args
+        raise_processing_error.kwargs = kwargs
+        raise ProcessingError(*args, **kwargs)
 
-    for outputp in os:
-        ofilter = outputp.get("filter")
-        if ofilter:
-            if ifilter is None or ifilter == _all:
-                assert ofilter.call_count == nbrecs
-            ofilter.reset_mock()
+    mocked_exception = Mock(side_effect=raise_processing_error)
+    monkeypatch.setattr(
+        "humilis_kinesis_processor.lambda_function.handler.processor.ProcessingError",  # noqa
+        mocked_exception)
 
-        omapper = outputp.get("mapper")
-        pkey = outputp.get("partition_key")
-        if (ifilter is None or ifilter.side_effect == _all) and \
-                (ofilter is None or ofilter.side_effect == _all):
-            if omapper:
-                assert omapper.call_count == nbrecs
-            if pkey:
-                assert pkey.call_count == nbrecs
-        else:
-            if omapper:
-                assert omapper.call_count == 0
-            if pkey:
-                assert pkey.call_count == 0
+    with pytest.raises(ProcessingError):
+        process_event(kinesis_event, context, i, os)
 
-        if omapper:
-            omapper.reset_mock()
-
-        if pkey:
-            pkey.reset_mock()
-
-
-
-def _assert_imapper_call_count(i, call_count):
-    """Check that the input mapper, if applicable, has been called."""
-    ifilter = None
-    imapper = None
-    if i:
-        imapper = i.get("mapper")
-        ifilter = i.get("filter")
-
-    if imapper:
-        if ifilter is None or ifilter.side_effect == _all:
-            assert imapper.call_count == call_count
-        elif ifilter.side_effect == _none:
-            assert imapper.call_count == 0
-
-        imapper.reset_mock()
-
-
-def _assert_ifilter_call_count(i, call_count):
-    """Check that the input filter, if present, has been called."""
-    ifilter = None
-    if i:
-        ifilter = i.get("filter")
-
-    if ifilter:
-        assert ifilter.call_count == call_count
-        # Reset the call count between parametrized invocations of the test
-        ifilter.reset_mock()
+    assert len(mocked_exception.side_effect.args[0]) == frecs
+    assert boto3_client("kinesis").put_records.call_count == kputs
+    assert boto3_client("firehose").put_record_batch.call_count == fputs
 
 
 def test_bad_mapper_signature(kinesis_record_template, context):

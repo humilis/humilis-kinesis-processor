@@ -39,7 +39,8 @@ def process_event(kevent, context, inputp, outputp):
     # The humilis context to pass to filters and mappers
     hcontext = _make_humilis_context(shard_id=shard_id, lambda_context=context)
 
-    logger.info("Going to process %s events", len(events))
+    nbevents = len(events)
+    logger.info("Going to process %s events", nbevents)
     logger.info("First event: %s", pretty(events[0]))
 
     # Records that threw an exception in the input or output pipelines
@@ -50,18 +51,33 @@ def process_event(kevent, context, inputp, outputp):
             for stream in input_delivery_stream:
                 send_to_delivery_stream(events, stream)
 
-        events, ifailed, _ = run_pipeline(inputp, events, hcontext, "input")
+        # The input pipeline is enforced to be 1-to-1
+        events, ifailed = run_pipeline(
+            inputp, copy.deepcopy(events), hcontext, "input")
         failed += ifailed
 
     if events and outputp:
+        # The original indices of the events
+        indices = [i for i in range(nbevents)
+                   if i not in {f.index for f in failed}]
         oevents, ofailed = produce_outputs(outputp, events, hcontext)
+        # Remap the indices of the errors
+        ofailed = [EventError(indices[err.index], err.event, err.error)
+                   for err in ofailed]
         failed += ofailed
         # To make the processing task as atomic as possible we deliver the
         # events to the output streams only after all outputs are produced.
         deliver_outputs(outputp, oevents)
+    else:
+        if outputp:
+            oevents = [[] for _ in outputp]
+        else:
+            oevents = []
 
     if failed:
         raise ProcessingError(sorted(failed, key=operator.attrgetter("index")))
+
+    return oevents
 
 
 def _make_humilis_context(**kwargs):
@@ -112,106 +128,56 @@ def deliver_outputs(output, oevents):
 def produce_outputs(outputs, events, context):
     """Produces the output event streams."""
     oevents = []
-    failed = []
+    failed = {}
     for oindex, output in enumerate(outputs):
         logger.info("Producing output #%s", oindex)
         # An event must succeed in all outputs to be considered successful
-        processed, this_failed, events = run_pipeline(
-            output, copy.deepcopy(events), context, "output")
-        failed += this_failed
+        processed, this_failed = run_pipeline(
+            output, copy.deepcopy(events), context, "output {}".format(oindex))
+        if this_failed:
+            logger.info("%s events failed for this output", len(this_failed))
+            logger.info("First failed event: %s", pretty(this_failed[0].event))
+        for err in this_failed:
+            # Record only the first exception raised by an event
+            if err.index not in failed:
+                failed[err.index] = err
         oevents.append(processed)
 
-    return oevents, failed
+    return oevents, [err for idx, err in sorted(failed.items())]
 
 
 def run_pipeline(pipeline, events, context, name="unnamed"):
     """Apply a filter and a mapper to a list of events."""
 
+    logger.info("Processing %s events with pipeline '%s'.", len(events), name)
+
+    pfilter = pipeline.get("filter")
+    pmapper = pipeline.get("mapper")
     failed = []
-    succeeded = events
-    ifilter = pipeline.get("filter")
-    imapper = pipeline.get("mapper")
-
-    logger.info("Processing '%s' pipeline.", name)
-
-    if ifilter:
-        logger.info("Filtering %s events.", len(events))
-        events, ffailed, succeeded = _filter_events(ifilter, events, context)
-        failed += ffailed
-    else:
-        logger.info("No filter: selecting all events")
-        ffailed = []
-        succeeded = events
-
-    if imapper:
-        logger.info("Mapping %s events.", len(events))
-        mapped, mfailed, succeeded = _map_events(imapper, events, context)
-        failed = sorted(ffailed + mfailed, key=operator.attrgetter("index"))
-    else:
-        mapped = events
-        succeeded = events
-        logger.info("No mapper")
-
-    return mapped, failed, succeeded
-
-
-def _filter_events(filterf, events, context):
-    """Safely apply filter to a set of events and report failed events."""
-    failed = []
-    succeeded = []
-    selected = []
+    processed = []
     for index, event in enumerate(events):
         try:
-            if filterf(copy.deepcopy(event), context):
-                selected.append(event)
-            succeeded.append(event)
-        except CriticalError:
-            raise
-        except Exception as err:
-            failed.append(EventError(index, event, err))
-
-    if failed:
-        logger.info("Failed to filter %s events.", len(failed))
-
-    if selected:
-        logger.info("Selected %s events.", len(selected))
-    else:
-        logger.info("Filtered out all events: nothing to do.")
-
-    return selected, failed, succeeded
-
-
-def _map_events(mapf, events, context):
-    """Safely apply mapper to selected events."""
-    failed = []
-    succeeded = []
-    mapped = []
-    for index, event in enumerate(events):
-        try:
-            mapped_events = mapf(copy.deepcopy(event), context)
-            if isinstance(mapped_events, dict):
-                # 1-to-1 mapping: for backwards compatibility
-                mapped.append(mapped_events)
-            elif isinstance(mapped_events, list):
-                # 1-to-many mapping
-                mapped += mapped_events
+            if pfilter and not pfilter(copy.deepcopy(event), context):
+                # Skip this event in this pipeline
+                continue
+            if pmapper:
+                mapped = pmapper(copy.deepcopy(event), context)
+                if isinstance(mapped, dict):
+                    # backwards compatibility
+                    mapped = [mapped]
+                if not isinstance(mapped, list):
+                    raise CriticalError("Mapper must return a list of dicts.")
+                if name == "input" and len(mapped) != 1:
+                    raise CriticalError("Input mappers must be 1-to-1")
+                processed += mapped
             else:
-                raise CriticalError("Mapper must return a list of dicts")
-            succeeded.append(event)
+                processed.append(event)
         except CriticalError:
             raise
         except Exception as err:
             failed.append(EventError(index, event, err))
 
-    if failed:
-        logger.info("Failed to map %s/%s events.", len(failed), len(events))
-
-    if mapped:
-        logger.info("Mapper produced %s events for %s incoming events.",
-                    len(mapped), len(events))
-        logger.info("First mapped event: %s", pretty(mapped[0]))
-
-    return mapped, failed, succeeded
+    return processed, failed
 
 
 def send_to_delivery_stream(events, delivery_stream):
