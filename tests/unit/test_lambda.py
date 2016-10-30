@@ -93,9 +93,14 @@ def _make_output(filter=None, mapper=None, kstream=None, fstream=None):
     "i,os,kputs,fputs,orecs", [
         [_make_input(kstream="k"),
          [
+             _make_output(_none, _dupper, None, "f"),
+             _make_output(_filter_by_index(1), None, "k", None)],
+         1, 0, [0, 1]],
+        [_make_input(kstream="k"),
+         [
              _make_output(_filter_by_index(0), _dupper, None, "f"),
-             _make_output(_filter_by_index(1), None, "k", None)]
-         , 1, 1, [2, 1]],
+             _make_output(_filter_by_index(1), None, "k", None)],
+         1, 1, [2, 1]],
         [_make_input(kstream="k"),
          [
              _make_output(_filter_by_index(0), None, None, "f"),
