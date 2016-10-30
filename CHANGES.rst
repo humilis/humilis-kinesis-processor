@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.8.5
+-----
+
+- Better error handling.
+
 0.7.7
 -----
 
