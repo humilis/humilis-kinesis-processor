@@ -34,7 +34,7 @@ class FirehoseError(Exception):
 def process_event(kevent, context, inputp, outputp):
     """Process records in the incoming Kinesis event."""
 
-    events, shard_id = _get_records(kevent)
+    input_events, shard_id = _get_records(kevent)
 
     # The humilis context to pass to filters and mappers
     hcontext = _make_humilis_context(shard_id=shard_id, lambda_context=context)
@@ -53,8 +53,10 @@ def process_event(kevent, context, inputp, outputp):
 
         # The input pipeline is enforced to be 1-to-1
         events, ifailed = run_pipeline(
-            inputp, copy.deepcopy(events), hcontext, "input")
+            inputp, copy.deepcopy(input_events), hcontext, "input")
         failed += ifailed
+    else:
+        events = input_events
 
     if events and outputp:
         # The original indices of the events
@@ -62,7 +64,9 @@ def process_event(kevent, context, inputp, outputp):
                    if i not in {f.index for f in failed}]
         oevents, ofailed = produce_outputs(outputp, events, hcontext)
         # Remap the indices of the errors
-        ofailed = [EventError(indices[err.index], err.event, err.error)
+        ofailed = [EventError(indices[err.index],
+                              input_events[indices[err.index]],
+                              err.error)
                    for err in ofailed]
         failed += ofailed
         # To make the processing task as atomic as possible we deliver the
