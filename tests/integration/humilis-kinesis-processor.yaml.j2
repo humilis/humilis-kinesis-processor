@@ -8,20 +8,16 @@ humilis-kinesis-processor:
         # A S3 bucket to test Firehose delivery
         - layer: storage
 
-        - layer: firehose-resource
-          layer_type: firehose-resource
-
         - layer: s3delivery
           layer_type: firehose
-          firehose_resource_layer: firehose-resource
           s3_buffer_seconds: 60
           streams:
               - name: DeliveryStream1
-                prefix: stream1/
+                s3_prefix: stream1/
               - name: DeliveryStream2
-                prefix: stream2/
+                s3_prefix: stream2/
               - name: DeliveryStream3
-                prefix: stream3/
+                s3_prefix: stream3/
 
         # The I/O Kinesis streams
         - layer: streams

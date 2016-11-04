@@ -39,9 +39,9 @@ def process_event(kevent, context, inputp, outputp):
     # The humilis context to pass to filters and mappers
     hcontext = _make_humilis_context(shard_id=shard_id, lambda_context=context)
 
-    nbevents = len(events)
+    nbevents = len(input_events)
     logger.info("Going to process %s events", nbevents)
-    logger.info("First event: %s", pretty(events[0]))
+    logger.info("First event: %s", pretty(input_events[0]))
 
     # Records that threw an exception in the input or output pipelines
     failed = []
@@ -49,7 +49,7 @@ def process_event(kevent, context, inputp, outputp):
         input_delivery_stream = inputp.get("firehose_delivery_stream")
         if input_delivery_stream:
             for stream in input_delivery_stream:
-                send_to_delivery_stream(events, stream)
+                send_to_delivery_stream(input_events, stream)
 
         # The input pipeline is enforced to be 1-to-1
         events, ifailed = run_pipeline(

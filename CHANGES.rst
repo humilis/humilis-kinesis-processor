@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.8.6
+-----
+
+- Bugfix in error handling logic.
+
 0.8.5
 -----
 

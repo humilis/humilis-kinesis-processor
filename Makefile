@@ -57,7 +57,7 @@ update: update-cf secrets
 
 # delete the test deployment
 delete: develop
-	./scripts/empty-bucket.py $(HUMILIS_ENV)-$(STAGE).outputs.yaml
+	$(PYTHON) ./scripts/empty-bucket.py $(HUMILIS_ENV)-$(STAGE).outputs.yaml
 	$(HUMILIS) delete --stage $(STAGE) $(HUMILIS_ENV).yaml.j2
 
 # upload to Pypi

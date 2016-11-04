@@ -5,22 +5,25 @@ import uuid
 
 
 from . import get_all_records, get_shard_iterators
+from .. import make_records
 
 
-def test_out_of_order_error(kinesis, sample_records, input_stream_name,
-                            output_stream_name, error_stream_name):
+def test_out_of_order_error(
+    kinesis, input_stream_name, output_stream_name, error_stream_name):
     """Test handling a ProcessingError exception in a mapper."""
 
+    sample_records = make_records(2)
     # This will cause the input mapper to raise an OutOfOrderError
     sample_records[0]["index"] = -100
     _assert_non_critical_error(kinesis, sample_records, input_stream_name,
                                output_stream_name, error_stream_name)
 
 
-def test_processing_error(kinesis, sample_records, input_stream_name,
-                          output_stream_name, error_stream_name):
+def test_processing_error(
+    kinesis, input_stream_name, output_stream_name, error_stream_name):
     """Test handling a ProcessingError exception in a mapper."""
 
+    sample_records = make_records(2)
     # This will cause the input filter to raise a KeyError
     del sample_records[0]["id"]
     _assert_non_critical_error(kinesis, sample_records, input_stream_name,
@@ -41,9 +44,10 @@ def _assert_non_critical_error(kinesis, recs, istream, ostream, estream):
 
 
 def test_io_streams_put_get_record(
-        kinesis, sample_records, input_stream_name, output_stream_name):
+        kinesis, input_stream_name, output_stream_name):
     """Put records at the input, then read them from the output."""
 
+    sample_records = make_records(2)
     # Get the shard iterators *before* you put records at the input
     shard_iterators = get_shard_iterators(kinesis, output_stream_name)
     _put_records(kinesis, input_stream_name, sample_records)
@@ -62,9 +66,10 @@ def test_io_streams_put_get_record(
 
 
 def test_set_get_state(
-        kinesis, sample_records, input_stream_name, output_stream_name):
+        kinesis, input_stream_name, output_stream_name):
     """Put and read a record from the input stream."""
 
+    sample_records = make_records(2)
     nbrecs = len(sample_records)
     # Get the shard iterators *before* you put the records at the input
     shard_iterators = get_shard_iterators(kinesis, output_stream_name)
