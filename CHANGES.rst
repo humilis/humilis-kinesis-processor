@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.9.0
+-----
+
+- Better debugging of processing errors
+
 0.8.9
 -----
 
