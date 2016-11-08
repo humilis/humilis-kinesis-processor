@@ -7,6 +7,7 @@ import operator
 import logging
 import os
 import json
+import sys
 
 import lambdautils.utils as utils
 from lambdautils.exception import CriticalError, ProcessingError
@@ -14,7 +15,7 @@ from lambdautils.exception import CriticalError, ProcessingError
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-EventError = namedtuple("EventError", "index event error")
+EventError = namedtuple("EventError", "index event error stacktrace")
 
 
 class KinesisError(Exception):
@@ -54,6 +55,9 @@ def process_event(kevent, context, inputp, outputp):
         # The input pipeline is enforced to be 1-to-1
         events, ifailed = run_pipeline(
             inputp, copy.deepcopy(input_events), hcontext, "input")
+        if ifailed:
+            logger.error(
+                "%s events failed to be processed: %s", len(ifailed), ifailed)
         failed += ifailed
     else:
         events = input_events
@@ -68,6 +72,9 @@ def process_event(kevent, context, inputp, outputp):
                               input_events[indices[err.index]],
                               err.error)
                    for err in ofailed]
+        if ofailed:
+            logger.error(
+                "%s events failed to be processed: %s", len(ofailed), ofailed)
         failed += ofailed
         # To make the processing task as atomic as possible we deliver the
         # events to the output streams only after all outputs are produced.
@@ -181,7 +188,7 @@ def run_pipeline(pipeline, events, context, name="unnamed"):
         except Exception as err:
             # Add an annotation to support error expiration
             event = utils.annotate_error(event, err)
-            failed.append(EventError(index, event, err))
+            failed.append(EventError(index, event, err, sys.exc_info()[2]))
 
     return processed, failed
 
