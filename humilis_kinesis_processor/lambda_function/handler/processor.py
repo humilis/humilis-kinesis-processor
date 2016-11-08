@@ -70,7 +70,8 @@ def process_event(kevent, context, inputp, outputp):
         # Remap the indices of the errors
         ofailed = [EventError(indices[err.index],
                               input_events[indices[err.index]],
-                              err.error)
+                              err.error,
+                              err.stacktrace)
                    for err in ofailed]
         if ofailed:
             logger.error(
