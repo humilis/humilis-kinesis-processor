@@ -8,7 +8,7 @@ from lambdautils.exception import OutOfOrderError
 def input_mapper(event, *args, **kwargs):
     """Throw an OutOfOrderError if the event index is negative."""
     if event["index"] < 0:
-        raise OutOfOrderError("Event out of order: {}".format(pretty(event)))
+        raise OutOfOrderError("Event out of order")
 
     event["input_mapper"] = True
     return event
