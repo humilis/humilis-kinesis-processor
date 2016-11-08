@@ -1,7 +1,7 @@
 # These are the install requirements in the setup.py of the Lambda function
 boto3
 raven
-lambdautils>=0.8.4
+lambdautils>=1.0.7
 werkzeug
 # Linters for vim
 pylama
