@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.8.8
+0.8.9
 -----
 
 - Add error annotations to events that failed to be processed

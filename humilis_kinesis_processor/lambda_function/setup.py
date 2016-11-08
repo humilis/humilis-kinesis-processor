@@ -11,7 +11,7 @@ setup(
     install_requires=[
         "boto3",
         "raven",
-        "lambdautils>=1.0.4",
+        "lambdautils>=1.0.5",
         "werkzeug",
     ],
     classifiers=[

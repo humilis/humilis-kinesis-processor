@@ -179,8 +179,8 @@ def run_pipeline(pipeline, events, context, name="unnamed"):
         except CriticalError:
             raise
         except Exception as err:
-            # Add an annotation to support error timeouts
-            event = utils.annotate_event(event, repr(err))
+            # Add an annotation to support error expiration
+            event = utils.annotate_error(event, err)
             failed.append(EventError(index, event, err))
 
     return processed, failed
