@@ -199,6 +199,7 @@ def send_to_delivery_stream(events, delivery_stream):
     if events:
         logger.info("Sending %s events to delivery stream '%s' ...",
                     len(events), delivery_stream)
+        logger.info("First delivered event: %s", pretty(events[0]))
         resp = utils.send_to_delivery_stream(events, delivery_stream)
         if resp['ResponseMetadata']['HTTPStatusCode'] != 200:
             raise FirehoseError(json.dumps(resp))
@@ -208,9 +209,8 @@ def send_to_delivery_stream(events, delivery_stream):
 def send_to_kinesis_stream(events, stream, partition_key):
     """Send events to an ouput Kinesis stream."""
     if events:
-        logger.info("Sending {} events to stream '{}' ...".format(
-            len(events), stream))
-
+        logger.info("Sending % events to stream '%s' ...", len(events), stream)
+        logger.info("First sent event: %s", pretty(events[0]))
         logger.info("Using partition key: {}".format(partition_key))
         resp = utils.send_to_kinesis_stream(events, stream,
                                             partition_key=partition_key)
