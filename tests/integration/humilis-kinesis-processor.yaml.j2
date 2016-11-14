@@ -70,7 +70,11 @@ humilis-kinesis-processor:
               firehose_delivery_stream:
                 # Multiple delivery streams are supported
                 - {layer: s3delivery, name: DeliveryStream1}
-                - {layer: s3delivery, name: DeliveryStream2}
+                - layer: s3delivery
+                  name: DeliveryStream2
+                  filter: mypkg:output_filter_2b
+                  mapper: mypkg:output_mapper_2b
+
               partition_key: mypkg:partition_key
 
         # Keeps secrets: the Sentry token

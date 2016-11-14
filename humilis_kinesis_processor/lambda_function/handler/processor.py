@@ -199,8 +199,24 @@ def send_to_delivery_stream(events, delivery_stream):
     if events:
         logger.info("Sending %d events to delivery stream '%s' ...",
                     len(events), delivery_stream)
+        stream_name = delivery_stream["stream_name"]
+        if "filter" in delivery_stream:
+            logger.info("Applying filter before delivery")
+            events = [copy.deepcopy(ev) for ev in events
+                      if delivery_stream["filter"](ev)]
+            logger.info("Selected %d events for delivery", len(events))
+
+        if not events:
+            logger.info("All events were filtered out: nothing delivered")
+            return
+
+        if "mapper" in delivery_stream:
+            logger.info("Mapping %d events before delivery", len(events))
+            events = [delivery_stream["mapper"](copy.deepcopy(ev))
+                      for ev in events]
+
         logger.info("First delivered event: %s", pretty(events[0]))
-        resp = utils.send_to_delivery_stream(events, delivery_stream)
+        resp = utils.send_to_delivery_stream(events, stream_name)
         if resp['ResponseMetadata']['HTTPStatusCode'] != 200:
             raise FirehoseError(json.dumps(resp))
         logger.info(resp)

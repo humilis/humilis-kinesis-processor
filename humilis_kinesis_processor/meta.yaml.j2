@@ -81,22 +81,40 @@ meta:
                 {% if s.firehose_delivery_stream %}
                 firehose_delivery_stream:
                     {% if s.firehose_delivery_stream is mapping %}
-                    - ref:
-                        parser: output
-                        parameters:
-                            layer_name: {{s.firehose_delivery_stream.layer}}
-                            output_name: {{s.firehose_delivery_stream.name}}
+                    - stream_name:
+                        ref:
+                            parser: output
+                            parameters:
+                                layer_name: {{s.firehose_delivery_stream.layer}}
+                                output_name: {{s.firehose_delivery_stream.name}}
+                      {% if s.firehose_delivery_stream.filter %}
+                      filter: {{s.firehose_delivery_stream.filter}}
+                      {% endif %}
+                      {% if s.firehose_delivery_stream.mapper %}
+                      mapper: {{s.firehose_delivery_stream.mapper}}
+                      {% endif %}
                     {% elif s.firehose_delivery_stream|is_list %}
                     {% for ds in s.firehose_delivery_stream %}
-                    - ref:
-                        parser: output
-                        parameters:
-                            layer_name: {{ds.layer}}
-                            output_name: {{ds.name}}
+                    {% if ds is mapping %}
+                    - stream_name:
+                        ref:
+                            parser: output
+                            parameters:
+                                layer_name: {{ds.layer}}
+                                output_name: {{ds.name}}
+                      {% if ds.filter %}
+                      filter: {{ds.filter}}
+                      {% endif %}
+                      {% if ds.mapper %}
+                      mapper: {{ds.mapper}}
+                      {% endif %}
+                    {% else %}
+                    - stream_name: {{ds}}
+                    {% endif %}
                     {% endfor %}
                     {% else %}
                     # user is passing directly the name of the delivery stream
-                    {{s.firehose_delivery_stream}}
+                    - stream_name: {{s.firehose_delivery_stream}}
                     {% endif %}
                 {% endif %}
                 mapper: "{{s.mapper}}"
@@ -131,22 +149,40 @@ meta:
                   {% if s.firehose_delivery_stream %}
                   firehose_delivery_stream:
                       {% if s.firehose_delivery_stream is mapping %}
-                      - ref:
-                          parser: output
-                          parameters:
-                              layer_name: {{s.firehose_delivery_stream.layer}}
-                              output_name: {{s.firehose_delivery_stream.name}}
+                      - stream_name:
+                          ref:
+                              parser: output
+                              parameters:
+                                  layer_name: {{s.firehose_delivery_stream.layer}}
+                                  output_name: {{s.firehose_delivery_stream.name}}
+                        {% if s.firehose_delivery_stream.filter %}
+                        filter: {{s.firehose_delivery_stream.filter}}
+                        {% endif %}
+                        {% if s.firehose_delivery_stream.mapper %}
+                        mapper: {{s.firehose_delivery_stream.mapper}}
+                        {% endif %}
                       {% elif s.firehose_delivery_stream|is_list %}
                       {% for ds in s.firehose_delivery_stream %}
-                      - ref:
-                          parser: output
-                          parameters:
-                              layer_name: {{ds.layer}}
-                              output_name: {{ds.name}}
+                      {% if ds is mapping %}
+                      - stream_name:
+                          ref:
+                              parser: output
+                              parameters:
+                                  layer_name: {{ds.layer}}
+                                  output_name: {{ds.name}}
+                        {% if ds.filter %}
+                        filter: {{ds.filter}}
+                        {% endif %}
+                        {% if ds.mapper %}
+                        mapper: {{ds.mapper}}
+                        {% endif %}
+                      {% else %}
+                      - stream_name: {{ds}}
+                      {% endif %}
                       {% endfor %}
                       {% else %}
                       # user is passing directly the name of the delivery stream
-                      {{s.firehose_delivery_stream}}
+                      - stream_name: {{s.firehose_delivery_stream}}
                       {% endif %}
                   {% endif %}
                 {% endfor %}

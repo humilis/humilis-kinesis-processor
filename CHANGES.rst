@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.9.5
+-----
+
+- Support for delivery streams filters and mappers
+
 0.9.0
 -----
 
