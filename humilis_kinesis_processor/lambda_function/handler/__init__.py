@@ -41,7 +41,19 @@ input  = {
     {% elif v|is_list %}
     '{{k}}': [
     {% for vl in v %}
+    {% if vl is mapping %}
+    {
+    {% for k2, v2 in vl.items() %}
+    {% if k2 in callables %}
+    '{{k2}}': '{{v2 or ''}}' and import_string('{{v2}}'),
+    {% else %}
+    '{{k2}}': '{{v2}}',
+    {% endif %}
+    {% endfor %}
+    },
+    {% else %}
     '{{vl}}',
+    {% endif %}
     {% endfor %}
     ],
     {% else %}
@@ -68,7 +80,19 @@ output = [
         {% elif v|is_list %}
         '{{k}}': [
         {% for vl in v %}
+        {% if vl is mapping %}
+        {
+        {% for k2, v2 in vl.items() %}
+        {% if k2 in callables %}
+        '{{k2}}': '{{v2 or ''}}' and import_string('{{v2}}'),
+        {% else %}
+        '{{k2}}': '{{v2}}',
+        {% endif %}
+        {% endfor %}
+        },
+        {% else %}
         '{{vl}}',
+        {% endif %}
         {% endfor %}
         ],
         {% else %}

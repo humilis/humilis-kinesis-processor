@@ -84,7 +84,7 @@ def _make_output(filter=None, mapper=None, kstream=None, fstream=None):
     if kstream is not None:
         o["kinesis_stream"] = kstream
     if fstream is not None:
-        o["firehose_delivery_stream"] = fstream
+        o["firehose_delivery_stream"] = [{"stream_name": fstream}]
 
     return o
 

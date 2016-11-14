@@ -79,7 +79,7 @@ resources:
                       - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":",
                          {"Ref": "AWS::AccountId"}, ":",
                          "deliverystream/",
-                         "{{is}}"]
+                         "{{is.stream_name}}"]
                     {% endfor %}
                     {% else %}
                     # Just one input delivery stream
@@ -88,7 +88,7 @@ resources:
                       - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":",
                          {"Ref": "AWS::AccountId"}, ":",
                          "deliverystream/",
-                         "{{meta_input.firehose_delivery_stream}}"]
+                         "{{meta_input.firehose_delivery_stream.stream_name}}"]
                     {% endif %}
                     {% endif %}
                     {% if meta_error.firehose_delivery_stream %}
@@ -120,7 +120,7 @@ resources:
                       - ""
                       - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":",
                          {"Ref": "AWS::AccountId"}, ":",
-                         "deliverystream/", "{{osi}}"]
+                         "deliverystream/", "{{osi.stream_name}}"]
                     {% endfor %}
                     {% else %}
                     # Just one error delivery stream
@@ -128,7 +128,7 @@ resources:
                       - ""
                       - ["arn:aws:firehose:", {"Ref": "AWS::Region"},":",
                          {"Ref": "AWS::AccountId"}, ":", "deliverystream/",
-                         "{{os.firehose_delivery_stream}}"]
+                         "{{os.firehose_delivery_stream.stream_name}}"]
                     {% endif %}
                     {% endif %}
                     {% endfor %}

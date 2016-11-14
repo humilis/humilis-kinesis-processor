@@ -39,3 +39,12 @@ def output_mapper_1(event, *args, **kwargs):
 def output_mapper_2(event, *args, **kwargs):
     event["output_mapper_2"] = True
     return event
+
+
+def output_mapper_2b(event, *args, **kwargs):
+    event["output_mapper_2b"] = True
+    return event
+
+
+def output_filter_2b(event, *args, **kwargs):
+    return True
