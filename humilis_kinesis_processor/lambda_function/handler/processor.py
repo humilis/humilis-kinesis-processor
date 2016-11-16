@@ -103,13 +103,9 @@ def _make_humilis_context(**kwargs):
 
 def _get_records(kevent):
     """Unpack records from a Kinesis event."""
-    try:
-        events, shard_id = utils.unpack_kinesis_event(
-            kevent, deserializer=json.loads,
-            embed_timestamp="received_at")
-    except:
-        events = kevent
-        shard_id = 1
+    events, shard_id = utils.unpack_kinesis_event(
+        kevent, deserializer=json.loads,
+        embed_timestamp="received_at")
 
     return events, shard_id
 
