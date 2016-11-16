@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.9.6
+-----
+
+- Do not silence exception if Kinesis payload is not a json object
+
 0.9.5
 -----
 
