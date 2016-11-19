@@ -1,6 +1,7 @@
 """A dummy module for testing purposes."""
 
 import logging
+import os
 import uuid
 
 import lambdautils.state as state
@@ -14,6 +15,8 @@ def partition_key(event):
 
 
 def input_filter(event, *args, **kwargs):
+    if os.environ.get("mydummyvar") != "mydummyval":
+        raise ValueError("Unable to retrieve 'mydummyvar' from environment")
     event["input_filter"] = True
     val = state.get_state(event["id"])
     if val:

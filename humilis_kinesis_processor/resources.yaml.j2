@@ -36,6 +36,14 @@ resources:
           "Fn::GetAtt":
               - LambdaExecutionRole
               - Arn
+        Environment:
+          Variables:
+              "HUMILIS_ENVIRONMENT": "{{_env.name}}"
+              "HUMILIS_STAGE": "{{_env.stage}}"
+              "HUMILIS_LAYER": "{{_layer.name}}"
+              {% for varname, varvalue in variables.items() %}
+              "{{varname}}": "{{varvalue}}"
+              {% endfor %}
     # The role associated to the Lambda function that processes raw events
     LambdaExecutionRole:
       Type: "AWS::IAM::Role"

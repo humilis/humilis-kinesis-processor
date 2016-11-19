@@ -15,6 +15,11 @@ meta:
         {% endfor %}
     {% endif %}
     parameters:
+        variables:
+            description:
+                Environment variables to pass to the Lambda
+            value: {}
+
         dynamodb_capacity:
             description:
                 The read and write capacity for the Lambda state table(s)

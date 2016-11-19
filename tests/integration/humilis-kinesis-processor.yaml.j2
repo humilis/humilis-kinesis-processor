@@ -36,6 +36,8 @@ humilis-kinesis-processor:
         # Tests all features of the kinesis processor
         - layer: kinesis-processor
           layer_type: kinesis-processor
+          variables:
+            mydummyvar: mydummyval
           # Determines the target shard for an event
           dynamodb_capacity:
             read: 5

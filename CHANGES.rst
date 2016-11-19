@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.9.7
+-----
+
+- Support for Lambda environment variables
+
 0.9.6
 -----
 
