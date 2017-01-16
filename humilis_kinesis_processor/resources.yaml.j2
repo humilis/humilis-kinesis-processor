@@ -19,6 +19,133 @@
 {% set _ = globs.update({'stateful': False}) %}
 {% endif %}
 resources:
+    # Alarms
+    {% if not sns_topic.startswith("arn:") %}
+    SnsTopic:
+      Type: "AWS::SNS::Topic"
+      Properties:
+        TopicName: {{sns_topic}}
+    {% endif %}
+    {% if sns_topic %}
+    ThrottlingAlarm:
+      Type: "AWS::CloudWatch::Alarm"
+      Properties:
+        AlarmDescription: "Lambda function is being throttled"
+        AlarmActions:
+          {% if not sns_topic.startswith("arn:") %}
+          - Ref:
+              SnsTopic
+          {% else %}
+          - {{sns_topic}}
+          {% endif %}
+        MetricName: Throttles
+        Namespace: AWS/Kinesis
+        Statistic: Maximum
+        Period: 60
+        EvaluationPeriods: 1
+        Threshold: 0
+        ComparisonOperator: GreaterThanThreshold
+        Dimensions:
+          - Name: FunctionName
+            Value:
+              Ref: LambdaFunction
+    InvocationDurationAlarm:
+      Type: "AWS::CloudWatch::Alarm"
+      Properties:
+        AlarmDescription: "Lambda invocations have too long durations"
+        AlarmActions:
+          {% if not sns_topic.startswith("arn:") %}
+          - Ref:
+              SnsTopic
+          {% else %}
+          - {{sns_topic}}
+          {% endif %}
+        MetricName: Duration
+        Namespace: AWS/Lambda
+        Statistic: {{invocation_duration_alarm.statistic}}
+        Period: {{invocation_duration_alarm.period}}
+        EvaluationPeriods: {{invocation_duration_alarm.evaluation_periods}}
+        Threshold: {{invocation_duration_alarm.threshold}}
+        ComparisonOperator: GreaterThanThreshold
+        Dimensions:
+          - Name: FunctionName
+            Value:
+              Ref: LambdaFunction
+    InvocationErrorsAlarm:
+      Type: "AWS::CloudWatch::Alarm"
+      Properties:
+        AlarmDescription: "Too many Lambda invocation errors"
+        AlarmActions:
+          {% if not sns_topic.startswith("arn:") %}
+          - Ref:
+              SnsTopic
+          {% else %}
+          - {{sns_topic}}
+          {% endif %}
+        MetricName: Errors
+        Namespace: AWS/Lambda
+        Statistic: {{invocation_errors_alarm.statistic}}
+        Period: {{invocation_errors_alarm.period}}
+        EvaluationPeriods: {{invocation_errors_alarm.evaluation_periods}}
+        Threshold: {{invocation_errors_alarm.threshold}}
+        ComparisonOperator: GreaterThanThreshold
+        Dimensions:
+          - Name: FunctionName
+            Value:
+              Ref: LambdaFunction
+    TooFewInvocationsAlarm:
+      Type: "AWS::CloudWatch::Alarm"
+      Properties:
+        AlarmDescription: "Too few Lambda invocations"
+        AlarmActions:
+          {% if not sns_topic.startswith("arn:") %}
+          - Ref:
+              SnsTopic
+          {% else %}
+          - {{sns_topic}}
+          {% endif %}
+        InsufficientDataActions:
+          {% if not sns_topic.startswith("arn:") %}
+          - Ref:
+              SnsTopic
+          {% else %}
+          - {{sns_topic}}
+          {% endif %}
+        MetricName: Invocations
+        Namespace: AWS/Lambda
+        Statistic: {{invocations_alarm.statistic}}
+        Period: {{invocations_alarm.period}}
+        EvaluationPeriods: {{invocations_alarm.evaluation_periods}}
+        Threshold: {{invocations_alarm.lower_threshold}}
+        ComparisonOperator: LessThanThreshold
+        Dimensions:
+          - Name: FunctionName
+            Value:
+              Ref: LambdaFunction
+    TooManyInvocationsAlarm:
+      Type: "AWS::CloudWatch::Alarm"
+      Properties:
+        AlarmDescription: "Too many Lambda invocations"
+        AlarmActions:
+          {% if not sns_topic.startswith("arn:") %}
+          - Ref:
+              SnsTopic
+          {% else %}
+          - {{sns_topic}}
+          {% endif %}
+        MetricName: Invocations
+        Namespace: AWS/Lambda
+        Statistic: {{invocations_alarm.statistic}}
+        Period: {{invocations_alarm.period}}
+        EvaluationPeriods: {{invocations_alarm.evaluation_periods}}
+        Threshold: {{invocations_alarm.upper_threshold}}
+        ComparisonOperator: GreaterThanThreshold
+        Dimensions:
+          - Name: FunctionName
+            Value:
+              Ref: LambdaFunction
+    {% endif %}
+
     # The lambda function
     LambdaFunction:
       Type: "AWS::Lambda::Function"
@@ -44,6 +171,7 @@ resources:
               {% for varname, varvalue in variables.items() %}
               "{{varname}}": "{{varvalue}}"
               {% endfor %}
+
     # The role associated to the Lambda function that processes raw events
     LambdaExecutionRole:
       Type: "AWS::IAM::Role"
@@ -220,6 +348,7 @@ resources:
         StartingPosition:
           {{starting_position}} 
     {% endif %}
+
     # The DynamoDB tables that keep shard-specific state information
     #
     # We use the same state table across shards. The lambdautils functions

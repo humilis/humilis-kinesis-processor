@@ -1,20 +1,45 @@
 ---
-# Hyperparameters to this layer:
-#
-# input, output, error
-# input_delivery, output_delivery, error_delivery
-# lambda_dependencies
 meta:
     description:
         Processes events in a Kinesis stream
-    {% if dependencies %}
-    dependencies:
-        # Needed if the Lambda delivers to S3
-        {% for d in dependencies %}
-        - {{d}}
-        {% endfor %}
-    {% endif %}
+
     parameters:
+        sns_topic:
+            description:
+                The SNS topic where alarm notifications will be posted. This
+                can be either an ARN of an existing topic, or the name of a
+                topic to be created during the creation of this layer.
+            value:
+                {{_env.name}}-{{_env.stage}}-{{_layer.name}}
+
+        invocation_duration_alarm:
+            description:
+                Alarm when invocation duration is above expecations.
+            value:
+                statistic: Average
+                period: 300
+                evaluation_periods: 1
+                threshold: 120
+
+        invocation_errors_alarm:
+            description:
+                Alarm when there are too many invocation errors
+            value:
+                statistic: Sum
+                period: 300
+                evaluation_periods: 1
+                threshold: 5
+
+        invocations_alarm:
+            description:
+                Alarm when there are too many or too few invocations
+            value:
+                statistic: Sum
+                period: 300
+                evaluation_periods: 2
+                upper_threshold: 1000
+                lower_threshold: 5
+
         variables:
             description:
                 Environment variables to pass to the Lambda
