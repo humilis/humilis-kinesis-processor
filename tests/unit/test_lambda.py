@@ -1,12 +1,11 @@
 """Test the logic of the Lambda function."""
 
-import copy
 
 from lambdautils.exception import CriticalError, ProcessingError
 from mock import Mock
 import pytest
 
-from humilis_kinesis_processor.lambda_function.handler.processor import process_event  # noqa
+import humilis_kinesis_processor.lambda_function.handler.processor as processor
 from . import make_kinesis_event
 from .. import make_records
 
@@ -129,7 +128,7 @@ def test_process_event(i, os, kputs, fputs, orecs, kinesis_record_template,
     """Test processing events."""
     sample_records = make_records(2)
     kinesis_event = make_kinesis_event(kinesis_record_template, sample_records)
-    oevents = process_event(kinesis_event, context, i, os)
+    oevents = processor.process_event(kinesis_event, context, i, os)
     assert boto3_client("kinesis").put_records.call_count == kputs
     assert boto3_client("firehose").put_record_batch.call_count == fputs
     assert len(oevents) == len(os)
@@ -163,7 +162,7 @@ def test_handle_errors(i, os, kputs, fputs, frecs, kinesis_record_template,
         mocked_exception)
 
     with pytest.raises(ProcessingError):
-        process_event(kinesis_event, context, i, os)
+        processor.process_event(kinesis_event, context, i, os)
 
     assert len(mocked_exception.side_effect.args[0]) == frecs
     assert boto3_client("kinesis").put_records.call_count == kputs
@@ -181,4 +180,4 @@ def test_bad_mapper_signature(kinesis_record_template, context):
     kinesis_event = make_kinesis_event(kinesis_record_template, sample_records)
     outputp = [{"mapper": Mock(side_effect=bad_mapper)}]
     with pytest.raises(CriticalError):
-        process_event(kinesis_event, context, [], outputp)
+        processor.process_event(kinesis_event, context, [], outputp)

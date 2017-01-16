@@ -15,7 +15,7 @@ HUMILIS_ENV := tests/integration/humilis-kinesis-processor
 	.lambda/bin/pip install -r requirements-lambda.txt
 
 # install dev dependencies, create layers directory
-develop: .env .lambda
+develop: .env
 	$(PIP) install -r requirements-test.txt -r requirements-dev.txt
 
 # run unit tests
