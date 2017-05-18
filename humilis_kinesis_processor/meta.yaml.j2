@@ -129,7 +129,7 @@ meta:
                 {% endif %}
                 {% if s.firehose_delivery_stream %}
                 firehose_delivery_stream:
-                    {% if s.firehose_delivery_stream is mapping and 'layer' in s.kinesis_stream %}
+                    {% if s.firehose_delivery_stream is mapping and 'layer' in s.firehose_delivery_stream %}
                     - stream_name:
                         ref:
                             parser: output
@@ -183,7 +183,7 @@ meta:
                   partition_key: {{s.partition_key}}
                   {% if s.kinesis_stream %}
                   kinesis_stream:
-                      {% if s.kinesis_stream is mapping %}
+                      {% if s.kinesis_stream is mapping and 'layer' in s.kinesis_stream %}
                       {# user is passing a reference to another layer output #}
                       ref:
                           parser: output
@@ -197,7 +197,7 @@ meta:
                   {% endif %}
                   {% if s.firehose_delivery_stream %}
                   firehose_delivery_stream:
-                      {% if s.firehose_delivery_stream is mapping %}
+                      {% if s.firehose_delivery_stream is mapping and 'layer' in s.firehose_delivery_stream %}
                       - stream_name:
                           ref:
                               parser: output
@@ -212,7 +212,7 @@ meta:
                         {% endif %}
                       {% elif s.firehose_delivery_stream|is_list %}
                       {% for ds in s.firehose_delivery_stream %}
-                      {% if ds is mapping %}
+                      {% if ds is mapping and 'layer' in ds %}
                       - stream_name:
                           ref:
                               parser: output
