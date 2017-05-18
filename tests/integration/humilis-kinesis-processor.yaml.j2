@@ -32,10 +32,17 @@ humilis-kinesis-processor:
                 shard_count: 1
               - name: ErrorStream
                 shard_count: 1
+              - name: LogStream
+                shard_count: 1
 
         # Tests all features of the kinesis processor
         - layer: kinesis-processor
           layer_type: kinesis-processor
+          logs_destination_arn:
+            $layer_output:
+                layer_name: streams
+                output_name: LogStreamArn
+          logs_filter_pattern: INFO
           variables:
             mydummyvar: mydummyval
           # Determines the target shard for an event
@@ -46,6 +53,8 @@ humilis-kinesis-processor:
           batch_size: 1
           # Additional IAM permission to write to Elastic Search
           iam_actions: [{action: "es:*", resource: "*"}]
+          kms_key_admins:
+            - german
           lambda_dependencies:
             - user-agents
             - mycode/mypkg

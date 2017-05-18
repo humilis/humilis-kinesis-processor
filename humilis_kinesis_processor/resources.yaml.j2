@@ -374,3 +374,123 @@ resources:
         TableName: {{_env.name}}-{{_layer.name}}-state
         {% endif %}
     {% endif %}
+
+    # The KMS key used to encrypt environment variables
+    {% if kms_key_admins %}
+    KmsKey:
+      Type: "AWS::KMS::Key"
+      Properties:
+        Description: "{{__context.environment.name}}-{{__context.stage}}-{{__context.layer.name}}"
+        KeyPolicy:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: Enable IAM User Permissions
+              Effect: Allow
+              Principal:
+                AWS:
+                  "Fn::Join":
+                      - ""
+                      -
+                          - "arn:aws:iam:"
+                          - ":"
+                          - Ref: "AWS::AccountId"
+                          - ":"
+                          - "root"
+              Action: "kms:*"
+              Resource: "*"
+            - Sid: Allow access for Key Administrators
+              Effect: Allow
+              Principal:
+                AWS:
+                  {% for kadmin in kms_key_admins %}
+                  - "Fn::Join":
+                      - ""
+                      -
+                          - "arn:aws:iam:"
+                          - ":"
+                          - Ref: "AWS::AccountId"
+                          - ":user/"
+                          - "{{kadmin}}"
+                  {% endfor %}
+            - Sid: Allow use of the key
+              Effect: Allow
+              Principal:
+                AWS:
+                  - "Fn::GetAtt":
+                      - LambdaExecutionRole
+                      - Arn
+                  {% for kuser in kms_key_users %}
+                  - "Fn::Join":
+                      - ""
+                      -
+                          - "arn:aws:iam:"
+                          - ":"
+                          - Ref: "AWS::AccountId"
+                          - ":user/"
+                          - "{{kuser}}"
+                  {% endfor %}
+              Action:
+                - "kms:Encrypt"
+                - "kms:Decrypt"
+                - "kms:ReEncrypt*"
+                - "kms:GenerateDataKey*"
+                - "kms:DescribeKey"
+              Resource: "*"
+    {% endif %}
+
+    {% if logs_destination_arn and logs_destination_arn.find('kinesis') > -1 %}
+    CloudwatchRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                  Service: { "Fn::Join": ["", ["logs.", { "Ref": "AWS::Region" } ,".amazonaws.com" ]]}
+              Action: 'sts:AssumeRole'
+        # Keep all environment role under the same path
+        Path: {{ "/{}/".format(_env.name) }}
+        Policies:
+          - PolicyName: root
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - "kinesis:DescribeStream"
+                    - "kinesis:ListStreams"
+                  Resource: "*"
+                - Effect: Allow
+                  Action:
+                    - "kinesis:Put*"
+                  Resource:
+                    - "{{logs_destination_arn}}"
+    {% endif %}
+
+    {% if logs_destination_arn %}
+    LogGroup:
+        Type: "AWS::Logs::LogGroup"
+        Properties: 
+          LogGroupName:
+            "Fn::Join":
+              - ""
+              - ["/aws/lambda/", {"Ref": "LambdaFunction"}]
+
+    LogsSubscription:
+        Type: "AWS::Logs::SubscriptionFilter"
+        DependsOn: LogGroup 
+        Properties:
+          DestinationArn: "{{logs_destination_arn}}"
+          FilterPattern: "{{logs_filter_pattern}}"
+          LogGroupName:
+            "Fn::Join":
+              - ""
+              - ["/aws/lambda/", {"Ref": "LambdaFunction"}]
+          {% if logs_destination_arn.find('kinesis') > -1 %}
+          RoleArn:
+              "Fn::GetAtt":
+                  - CloudwatchRole
+                  - Arn
+          {% endif %}
+    {% endif %}

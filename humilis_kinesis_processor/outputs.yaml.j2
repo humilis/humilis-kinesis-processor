@@ -6,9 +6,17 @@ outputs:
             "Fn::GetAtt":
                 - LambdaFunction
                 - Arn
+
     LambdaExecutionRoleArn:
         Description: The ARN of the Lambda execution role
         Value:
             "Fn::GetAtt":
                 - LambdaExecutionRole
                 - Arn
+
+    {% if kms_key_admins %}
+    KmsKeyId:
+        Description: The ID of the KMS key used to encrypt Lambda env vars
+        Value:
+            Ref: KmsKey
+    {% endif %}

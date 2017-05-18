@@ -4,6 +4,17 @@ meta:
         Processes events in a Kinesis stream
 
     parameters:
+        logs_destination_arn:
+            description:
+                The ARN of a Kinesis stream or Lambda function to where 
+                Cloudwatch logs will be delivered.
+            value:
+
+        logs_filter_pattern:
+            description:
+                The filter pattern for the logs delivered to the logs destination
+            value: ERROR
+
         sns_topic:
             description:
                 The SNS topic where alarm notifications will be posted. This
@@ -84,6 +95,14 @@ meta:
             description:
                 Additional IAM actions that the Lambda will be allowed to perform
             value: []   # A list of dicts like {action: x, resource: y}
+
+        kms_key_admins:
+            description: List of IAM users that are allowed to administer the key
+            value: []
+
+        kms_key_users:
+            description: List of IAM users that are allowed to administer the key
+            value: []
 
         # There can be 0 or 1 input/error streams
         {% set stream = {"input": input, "error": error} %}
