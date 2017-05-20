@@ -269,6 +269,7 @@ resources:
                     {% endif %}
                     {% endfor %}
                 {% endif %}
+
                 - Effect: Allow
                   # Permission to list and describe all streams
                   Action:
@@ -288,7 +289,8 @@ resources:
                          {"Ref": "AWS::AccountId"}, ":", "stream/",
                          "{{meta_input.kinesis_stream}}"]
                   {% endif %}
-                  {% if has_output_stream or meta_error.kinesis_stream %}
+
+                {% if globs.has_output_stream or meta_error.kinesis_stream %}
                 - Effect: Allow
                   # Permissions to write to error and output streams
                   Action:
