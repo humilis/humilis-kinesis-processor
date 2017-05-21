@@ -38,6 +38,7 @@ humilis-kinesis-processor:
         # Tests all features of the kinesis processor
         - layer: kinesis-processor
           layer_type: kinesis-processor
+          received_at_field: received_at
           logs_destination_arn:
             $layer_output:
                 layer_name: streams

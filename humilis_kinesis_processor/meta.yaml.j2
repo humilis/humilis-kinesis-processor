@@ -4,6 +4,13 @@ meta:
         Processes events in a Kinesis stream
 
     parameters:
+        received_at_field:
+            description:
+                The name of the field where the arrival timestamp will be embedded
+            value:
+                # This naming convention makes sense if using Polku's client SDKs
+                receivedAt
+
         logs_destination_arn:
             description:
                 The ARN of a Kinesis stream or Lambda function to where 

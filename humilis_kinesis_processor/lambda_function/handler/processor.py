@@ -1,6 +1,8 @@
 """Process events in a Kinesis stream."""
 from __future__ import print_function
 
+# preprocessor:jinja2
+
 import copy
 from collections import namedtuple
 import operator
@@ -105,7 +107,12 @@ def _get_records(kevent):
     """Unpack records from a Kinesis event."""
     events, shard_id = utils.unpack_kinesis_event(
         kevent, deserializer=json.loads,
-        embed_timestamp="receivedAt")
+        {% if received_at_field %}
+        embed_timestamp="{{received_at_field}}"
+        {% else %}
+        embed_timestamp=False
+        {% endif %}
+        )
 
     return events, shard_id
 
