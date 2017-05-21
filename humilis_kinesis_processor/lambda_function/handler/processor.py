@@ -107,11 +107,7 @@ def _get_records(kevent):
     """Unpack records from a Kinesis event."""
     events, shard_id = utils.unpack_kinesis_event(
         kevent, deserializer=json.loads,
-        {% if received_at_field %}
         embed_timestamp="{{received_at_field}}"
-        {% else %}
-        embed_timestamp=False
-        {% endif %}
         )
 
     return events, shard_id
