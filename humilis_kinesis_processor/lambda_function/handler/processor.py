@@ -73,7 +73,7 @@ def process_event(kevent, context, inputp, outputp):
         ofailed = [EventError(indices[err.index],
                               input_events[indices[err.index]],
                               err.error,
-                              sys.exc_info())
+                              err.tb)
                    for err in ofailed]
         if ofailed:
             logger.error(
