@@ -17,7 +17,7 @@ from lambdautils.exception import CriticalError, ProcessingError
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-EventError = namedtuple("EventError", "index event error stacktrace")
+EventError = namedtuple("EventError", "index event error tb")
 
 
 class KinesisError(Exception):
@@ -73,7 +73,7 @@ def process_event(kevent, context, inputp, outputp):
         ofailed = [EventError(indices[err.index],
                               input_events[indices[err.index]],
                               err.error,
-                              err.stacktrace)
+                              sys.exc_info())
                    for err in ofailed]
         if ofailed:
             logger.error(
@@ -188,7 +188,7 @@ def run_pipeline(pipeline, events, context, name="unnamed"):
         except Exception as err:
             # Add an annotation to support error expiration
             event = utils.annotate_error(event, err)
-            failed.append(EventError(index, event, err, sys.exc_info()[2]))
+            failed.append(EventError(index, event, err, sys.exc_info()))
 
     return processed, failed
 
