@@ -227,8 +227,8 @@ def send_to_kinesis_stream(events, stream, partition_key):
         logger.info("Sending %d events to '%s' ...", len(events), stream)
         logger.info("First sent event: %s", pretty(events[0]))
         logger.info("Using partition key: {}".format(partition_key))
-        resp = utils.send_to_kinesis_stream(events, stream,
-                                            partition_key=partition_key)
+        resp = utils.send_to_kinesis_stream(
+            events, stream, partition_key=partition_key or str(uuid.uuid4()))
         if resp['ResponseMetadata']['HTTPStatusCode'] != 200:
             raise KinesisError(json.dumps(resp))
         logger.info(resp)
