@@ -10,6 +10,7 @@ import logging
 import os
 import json
 import sys
+import uuid
 
 import lambdautils.utils as utils
 from lambdautils.exception import CriticalError, ProcessingError
