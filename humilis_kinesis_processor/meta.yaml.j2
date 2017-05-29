@@ -111,6 +111,26 @@ meta:
             description: List of IAM users that are allowed to administer the key
             value: []
 
+        kinesis_deserializer:
+            description: A callable used to deserialize records in a Kinesis stream
+            value: json.loads
+
+        kinesis_serializer:
+            description: A callable used to serialize records before sending
+                         them to Kinesis
+            value: json.dumps
+
+        kinesis_unpacker:
+            description: A callable used to unpack records in a Kinesis stream
+                         For example, it could be gzip.decompress.
+            value:
+
+        kinesis_packer:
+            description: A callable used to process searialized records before
+                         sending them to Kinesis. For example, it could be
+                         gzip.compress.
+            value:
+
         # There can be 0 or 1 input/error streams
         {% set stream = {"input": input, "error": error} %}
         {% for stype in ["input", "error"] %}

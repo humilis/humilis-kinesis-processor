@@ -1,10 +1,12 @@
 """Unit tests fixtures and utilities."""
 from __future__ import unicode_literals
 
+import json
 import uuid
 
 from mock import Mock
 import pytest
+from werkzeug.utils import import_string  # noqa
 
 
 @pytest.fixture
@@ -123,8 +125,29 @@ def boto3_resource(dynamodb_resource):
     return mocked
 
 
+@pytest.fixture
+def import_string_mock():
+    """Mocked werkzeug.utils.import_string."""
+    def produce_import(name, *args, **kwargs):
+        """Produce an import."""
+        if name == "{{kinesis_serializer}}":
+            return json.dumps
+        elif name == "{{kinesis_deserializer}}":
+            return json.loads
+        elif name.startswith("{"):
+            return ""
+        else:
+            return import_string(name, *args, **kwargs)
+    mocked = Mock(side_effect=produce_import)
+    return mocked
+
+
 @pytest.fixture(autouse=True)
-def global_patch(boto3_client, boto3_resource, monkeypatch):
-    """Patch boto3."""
+def global_patch(boto3_client, boto3_resource, import_string_mock,
+                 monkeypatch):
+    """Patch boto3 and import_string."""
     monkeypatch.setattr("boto3.client", boto3_client)
     monkeypatch.setattr("boto3.resource", boto3_resource)
+    monkeypatch.setattr(
+        "humilis_kinesis_processor.lambda_function.handler.processor."
+        "import_string", import_string_mock)

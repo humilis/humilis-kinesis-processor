@@ -14,6 +14,8 @@ import uuid
 
 import lambdautils.utils as utils
 from lambdautils.exception import CriticalError, ProcessingError
+from werkzeug.utils import import_string  # noqa
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -107,7 +109,13 @@ def _make_humilis_context(**kwargs):
 def _get_records(kevent):
     """Unpack records from a Kinesis event."""
     events, shard_id = utils.unpack_kinesis_event(
-        kevent, deserializer=json.loads,
+        kevent,
+        deserializer="{{kinesis_deserializer}}" \
+                and "{{kinesis_desearializer}}" != "None" \
+                and import_string("{{kinesis_deserializer}}"),
+        unpacker="{{kinesis_unpacker}}" \
+                and "{{kinesis_unpacker}}" != "None" \
+                and import_string("{{kinesis_unpacker}}"),
         embed_timestamp="{{received_at_field}}"
         )
 
@@ -229,7 +237,15 @@ def send_to_kinesis_stream(events, stream, partition_key):
         logger.info("First sent event: %s", pretty(events[0]))
         logger.info("Using partition key: {}".format(partition_key))
         resp = utils.send_to_kinesis_stream(
-            events, stream, partition_key=partition_key or str(uuid.uuid4()))
+            events,
+            stream,
+            partition_key=partition_key or str(uuid.uuid4()),
+            packer="{{kinesis_packer}}" \
+                    and "{{kinesis_packer}}" != "None" \
+                    and import_string("{{kinesis_packer}}"),
+            serializer="{{kinesis_serializer}}" \
+                    and "{{kinesis_serializer}}" != "None" \
+                    and import_string("{{kinesis_serializer}}"))
         if resp['ResponseMetadata']['HTTPStatusCode'] != 200:
             raise KinesisError(json.dumps(resp))
         logger.info(resp)
