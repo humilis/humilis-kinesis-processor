@@ -4,6 +4,10 @@ meta:
         Processes events in a Kinesis stream
 
     parameters:
+        runtime:
+            description: The Python runtime. Either python2.7 or python3.6.
+            value: "python2.7"
+
         received_at_field:
             description:
                 The name of the field where the arrival timestamp will be embedded
