@@ -182,6 +182,8 @@ def run_pipeline(pipeline, events, context, name="unnamed"):
                 continue
             if pmapper:
                 mapped = pmapper(copy.deepcopy(event), context)
+                if mapped is None:
+                    continue
                 if isinstance(mapped, dict):
                     # backwards compatibility
                     mapped = [mapped]
