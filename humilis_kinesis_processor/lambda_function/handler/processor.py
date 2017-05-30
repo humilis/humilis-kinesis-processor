@@ -237,7 +237,6 @@ def send_to_kinesis_stream(events, stream, partition_key):
     if events:
         logger.info("Sending %d events to '%s' ...", len(events), stream)
         logger.info("First sent event: %s", pretty(events[0]))
-        logger.info("Using partition key: {}".format(partition_key))
         resp = utils.send_to_kinesis_stream(
             events,
             stream,
