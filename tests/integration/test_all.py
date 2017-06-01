@@ -64,7 +64,6 @@ def test_io_streams_put_get_record(
     assert all("input_filter" not in ev and "input_mapper" in ev and
                "received_at" in ev for ev in retrieved_recs)
 
-
 def test_set_get_state(
         kinesis, input_stream_name, output_stream_name):
     """Put and read a record from the input stream."""

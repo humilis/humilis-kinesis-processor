@@ -2,8 +2,11 @@
 
 # preprocessor:jinja2
 
+import json
 import logging
+import os
 
+import boto3
 import lambdautils.utils as utils
 import raven
 from werkzeug.utils import import_string  # noqa
@@ -11,6 +14,7 @@ from werkzeug.utils import import_string  # noqa
 from .processor import process_event
 
 logger = logging.getLogger()
+logger.setLevel(getattr(logging, os.environ.get("LOGGING_LEVEL", "INFO")))
 
 
 def produce_io_stream_callables():
@@ -158,6 +162,14 @@ error = {
 def lambda_handler(event, context):
     """Lambda function."""
 
+    if os.environ["ASYNC"].lower() == "true" and not event.get("async"):
+        logger.info("Forwarding to async invocation ...")
+        resp = invoke_self_async(event, context)
+        logger.info(json.dumps(resp, indent=4))
+        return
+    elif os.environ["ASYNC"].lower() == "true":
+        logger.info("Running asynchronously")
+
     try:
         input, output = produce_io_stream_callables()
     except Exception as exception:
@@ -165,3 +177,16 @@ def lambda_handler(event, context):
         raise utils.CriticalError(exception)
 
     return process_event(event, context, input, output)
+
+
+def invoke_self_async(event, context):
+    """
+    Have the Lambda invoke itself asynchronously, passing the same event it received originally,
+    and tagging the event as 'async' so it's actually processed
+    """
+    event["async"] = True
+    called_function = context.invoked_function_arn
+    boto3.client("lambda").invoke(
+        FunctionName=called_function,
+        InvocationType="Event",
+        Payload=json.dumps(event))

@@ -18,7 +18,6 @@ from werkzeug.utils import import_string  # noqa
 
 
 logger = logging.getLogger()
-logger.setLevel(getattr(logging, "{{logging_level}}"))
 
 EventError = namedtuple("EventError", "index event error tb")
 
@@ -39,7 +38,6 @@ class FirehoseError(Exception):
 
 def process_event(kevent, context, inputp, outputp):
     """Process records in the incoming Kinesis event."""
-
     input_events, shard_id = _get_records(kevent)
 
     # The humilis context to pass to filters and mappers

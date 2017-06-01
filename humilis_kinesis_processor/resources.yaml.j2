@@ -168,6 +168,8 @@ resources:
               "HUMILIS_ENVIRONMENT": "{{_env.name}}"
               "HUMILIS_STAGE": "{{_env.stage}}"
               "HUMILIS_LAYER": "{{_layer.name}}"
+              "ASYNC": "{{async}}"
+              "LOGGING_LEVEL": "{{logging_level}}"
               {% for varname, varvalue in variables.items() %}
               "{{varname}}": "{{varvalue}}"
               {% endfor %}
@@ -197,6 +199,17 @@ resources:
                     - "logs:CreateLogStream"
                     - "logs:PutLogEvents"
                   Resource: "arn:aws:logs:*:*:*"
+                - Effect: Allow
+                  # Invoke other lambda functions asynchronously
+                  Action:
+                    - "lambda:InvokeFunction"
+                  Resource:
+                    - "Fn::Join":
+                      - ""
+                      - ["arn:aws:lambda:", {"Ref": "AWS::Region"},":",
+                         {"Ref": "AWS::AccountId"}, ":",
+                         "function:",
+                         "{{__context.environment.name}}*"]
                 {% if meta_input.firehose_delivery_stream or meta_error.firehose_delivery_stream or globs.has_output_delivery %}
                 - Effect: Allow
                   # Write access to the Firehose delivery stream(s)
