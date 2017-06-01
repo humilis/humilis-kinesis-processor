@@ -172,10 +172,10 @@ def lambda_handler(event, context):
     elif os.environ["ASYNC"].lower() == "true":
         logger.info("Running asynchronously")
         for rec in event["Records"]:
-            rec["kinesis"]["data"] = \
-                zlib.decompress(
-                    b64decode(
-                        rec["kinesis"]["data"]))
+            data = rec["kinesis"]["data"]
+            decoded = b64decode(data.encode("utf-8"))
+            decompressed = zlib.decompress(decoded).decode()
+            rec["kinesis"]["data"] = decompressed
 
     try:
         input, output = produce_io_stream_callables()
@@ -194,10 +194,12 @@ def invoke_self_async(event, context):
     event["async"] = True
     # Payload limits are very strict in async invocations
     for rec in event["Records"]:
-        rec["kinesis"]["data"] = \
-            b64encode(
-                zlib.compress(
-                    rec["kinesis"]["data"]))
+        data = rec["kinesis"]["data"]
+        try:
+            data = b64encode(zlib.compress(data))
+        except TypeError:
+            data = b64encode(zlib.compress(data.encode("utf-8"))).decode()
+        rec["kinesis"]["data"] = data
     called_function = context.invoked_function_arn
     boto3.client("lambda").invoke(
         FunctionName=called_function,

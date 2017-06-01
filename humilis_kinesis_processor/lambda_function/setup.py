@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="humilis-kinesis-processor-lambda",
+    name="humilis-kinesis-processor",
     version="0.2.0",
     packages=find_packages(),
     include_package_data=True,
@@ -11,7 +11,7 @@ setup(
     install_requires=[
         "boto3",
         "raven",
-        "lambdautils>=1.4.4",
+        "lambdautils>=1.4.5",
         "werkzeug",
     ],
     classifiers=[
