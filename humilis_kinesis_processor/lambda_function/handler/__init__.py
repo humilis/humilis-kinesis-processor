@@ -175,7 +175,7 @@ def lambda_handler(event, context):
             rec["kinesis"]["data"] = \
                 zlib.decompress(
                     b64decode(
-                        rec["kinesis"]["data"].encode("utf-8"))).encode("utf-8")
+                        rec["kinesis"]["data"]))
 
     try:
         input, output = produce_io_stream_callables()
@@ -197,7 +197,7 @@ def invoke_self_async(event, context):
         rec["kinesis"]["data"] = \
             b64encode(
                 zlib.compress(
-                    rec["kinesis"]["data"].encode("utf-8"))).decode()
+                    rec["kinesis"]["data"]))
     called_function = context.invoked_function_arn
     boto3.client("lambda").invoke(
         FunctionName=called_function,
