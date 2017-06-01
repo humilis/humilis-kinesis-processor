@@ -2,9 +2,11 @@
 
 # preprocessor:jinja2
 
+from base64 import b64encode, b64decode
 import json
 import logging
 import os
+import zlib
 
 import boto3
 import lambdautils.utils as utils
@@ -169,6 +171,10 @@ def lambda_handler(event, context):
         return
     elif os.environ["ASYNC"].lower() == "true":
         logger.info("Running asynchronously")
+        event["kinesis"]["data"] = \
+            zlib.decompress(
+                b64decode(
+                    event["kinesis"]["data"].encode("utf-8"))).encode("utf-8")
 
     try:
         input, output = produce_io_stream_callables()
@@ -185,6 +191,11 @@ def invoke_self_async(event, context):
     and tagging the event as 'async' so it's actually processed
     """
     event["async"] = True
+    # Payload limits are very strict in async invocations
+    event["kinesis"]["data"] = \
+        b64encode(
+            zlib.compress(
+                event["kinesis"]["data"].encode("utf-8"))).decode()
     called_function = context.invoked_function_arn
     boto3.client("lambda").invoke(
         FunctionName=called_function,
