@@ -18,6 +18,7 @@ from werkzeug.utils import import_string  # noqa
 
 
 logger = logging.getLogger()
+logger.setLevel(getattr(logging, os.environ.get("LOGGING_LEVEL", "INFO")))
 
 EventError = namedtuple("EventError", "index event error tb")
 
