@@ -2,6 +2,7 @@
 
 # preprocessor:jinja2
 
+import copy
 from base64 import b64encode, b64decode
 import json
 import logging
@@ -205,10 +206,10 @@ def invoke_self_async(event, context):
             InvocationType="Event",
             Payload=json.dumps(event))
     else:
-        _batch_invoke(event, int(async_batch))
+        _batch_invoke(called_function, event,  int(async_batch))
 
 
-def _batch_invoke(event, size):
+def _batch_invoke(called_function, event, size):
     """Invoke asynchronously in batches."""
     batch = []
     recs = copy.deepcopy(event["Records"])
