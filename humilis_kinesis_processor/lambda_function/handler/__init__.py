@@ -198,7 +198,7 @@ def invoke_self_async(event, context):
     _compress_records(event)
     event["async"] = True
     called_function = context.invoked_function_arn
-    async_batch = os.environ.get("ASYNC_BATCH")
+    async_batch = os.environ.get("ASYNC_BATCH_SIZE")
     if not async_batch:
         invoke_with_retry(
             FunctionName=called_function,
