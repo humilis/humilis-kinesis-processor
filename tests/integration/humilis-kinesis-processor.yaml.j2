@@ -39,6 +39,7 @@ humilis-kinesis-processor:
         - layer: kinesis-processor
           layer_type: kinesis-processor
           async: yes
+          async_batch_size: 1
           received_at_field: received_at
           logs_destination_arn:
             $layer_output:

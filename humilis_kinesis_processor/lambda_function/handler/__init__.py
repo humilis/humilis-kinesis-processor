@@ -10,6 +10,7 @@ import zlib
 
 import boto3
 import lambdautils.utils as utils
+from retrying import retry
 import raven
 from werkzeug.utils import import_string  # noqa
 
@@ -188,11 +189,49 @@ def lambda_handler(event, context):
 
 def invoke_self_async(event, context):
     """
-    Have the Lambda invoke itself asynchronously, passing the same event it received originally,
-    and tagging the event as 'async' so it's actually processed
+    Have the Lambda invoke itself asynchronously, passing the same event it
+    received originally, and tagging the event as 'async' so it's actually
+    processed. Code (with modifications) taken from Matthew Preble's blog.
     """
+
+    # Payload limits are very strict in async invocations so use compression
+    _compress_records(event)
     event["async"] = True
-    # Payload limits are very strict in async invocations
+    called_function = context.invoked_function_arn
+    async_batch = os.environ.get("ASYNC_BATCH")
+    if not async_batch:
+        invoke_with_retry(
+            FunctionName=called_function,
+            InvocationType="Event",
+            Payload=json.dumps(event))
+    else:
+        _batch_invoke(event, int(async_batch))
+
+
+def _batch_invoke(event, size):
+    """Invoke asynchronously in batches."""
+    batch = []
+    recs = copy.deepcopy(event["Records"])
+    for ix, rec in recs:
+        batch.append(rec)
+        if not ix % size:
+            event["Records"] = batch
+            invoke_with_retry(
+                FunctionName=called_function,
+                InvocationType="Event",
+                Payload=json.dumps(event))
+            batch = []
+
+    if batch:
+        event["Records"] = batch
+        invoke_with_retry(
+            FunctionName=called_function,
+            InvocationType="Event",
+            Payload=json.dumps(event))
+
+
+def _compress_records(event):
+    """Compress the records data."""
     for rec in event["Records"]:
         data = rec["kinesis"]["data"]
         try:
@@ -200,8 +239,9 @@ def invoke_self_async(event, context):
         except TypeError:
             data = b64encode(zlib.compress(data.encode("utf-8"))).decode()
         rec["kinesis"]["data"] = data
-    called_function = context.invoked_function_arn
-    boto3.client("lambda").invoke(
-        FunctionName=called_function,
-        InvocationType="Event",
-        Payload=json.dumps(event))
+
+
+@retry(wait_exponential_multiplier=500, wait_exponential_max=5000,
+       stop_max_delay=20000)
+def invoke_with_retry(**kwargs):
+    return boto3.client("lambda").invoke(**kwargs)

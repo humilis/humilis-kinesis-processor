@@ -170,6 +170,7 @@ resources:
               "HUMILIS_LAYER": "{{_layer.name}}"
               "ASYNC": "{{async}}"
               "LOGGING_LEVEL": "{{logging_level}}"
+              "ASYNC_BATCH_SIZE": "{{async_batch_size}}"
               {% for varname, varvalue in variables.items() %}
               "{{varname}}": "{{varvalue}}"
               {% endfor %}
