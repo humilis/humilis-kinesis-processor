@@ -206,7 +206,8 @@ def invoke_self_async(event, context):
             InvocationType="Event",
             Payload=json.dumps(event))
     else:
-        _batch_invoke(called_function, event,  int(async_batch))
+        logger.info("Invoking async with batch_size=%s", async_batch)
+        _batch_invoke(called_function, event, int(async_batch))
 
 
 def _batch_invoke(called_function, event, size):
@@ -214,14 +215,14 @@ def _batch_invoke(called_function, event, size):
     batch = []
     recs = copy.deepcopy(event["Records"])
     for recix, rec in enumerate(recs):
-        if not recix % size:
+        batch.append(rec)
+        if not (recix + 1) % size:
             event["Records"] = batch
             invoke_with_retry(
                 FunctionName=called_function,
                 InvocationType="Event",
                 Payload=json.dumps(event))
             batch = []
-        batch.append(rec)
 
     if batch:
         event["Records"] = batch
