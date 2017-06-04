@@ -213,15 +213,15 @@ def _batch_invoke(called_function, event, size):
     """Invoke asynchronously in batches."""
     batch = []
     recs = copy.deepcopy(event["Records"])
-    for ix, rec in recs:
-        batch.append(rec)
-        if not ix % size:
+    for recix, rec in enumerate(recs):
+        if not recix % size:
             event["Records"] = batch
             invoke_with_retry(
                 FunctionName=called_function,
                 InvocationType="Event",
                 Payload=json.dumps(event))
             batch = []
+        batch.append(rec)
 
     if batch:
         event["Records"] = batch
