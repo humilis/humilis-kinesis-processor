@@ -239,7 +239,7 @@ def send_to_kinesis_stream(events, stream, partition_key):
         resp = utils.send_to_kinesis_stream(
             events,
             stream,
-            partition_key=partition_key or str(uuid.uuid4()),
+            partition_key=partition_key,
             packer="{{kinesis_packer}}" \
                     and "{{kinesis_packer}}" != "None" \
                     and import_string("{{kinesis_packer}}"),

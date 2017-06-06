@@ -168,9 +168,9 @@ resources:
               "HUMILIS_ENVIRONMENT": "{{_env.name}}"
               "HUMILIS_STAGE": "{{_env.stage}}"
               "HUMILIS_LAYER": "{{_layer.name}}"
-              "ASYNC": "{{async}}"
+              "ASYNC": "{{async or ''}}"
               "LOGGING_LEVEL": "{{logging_level}}"
-              "ASYNC_BATCH_SIZE": "{{async_batch_size}}"
+              "ASYNC_BATCH_SIZE": "{{async_batch_size or ''}}"
               {% for varname, varvalue in variables.items() %}
               "{{varname}}": "{{varvalue}}"
               {% endfor %}
