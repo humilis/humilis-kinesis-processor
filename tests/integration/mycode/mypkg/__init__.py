@@ -51,3 +51,9 @@ def output_mapper_2b(event, *args, **kwargs):
 
 def output_filter_2b(event, *args, **kwargs):
     return True
+
+
+def batch_mapper(events, *args, **kwargs):
+    for ev in events:
+        ev["batch_mapped"] = True
+    return events

@@ -170,6 +170,10 @@ def run_pipeline(pipeline, events, context, name="unnamed"):
 
     logger.info("Processing %s events with pipeline '%s'.", len(events), name)
 
+    batch_mapper = pipeline.get("batch_mapper")
+    if batch_mapper:
+        events = batch_mapper(copy.deepcopy(events), context)
+
     pfilter = pipeline.get("filter")
     pmapper = pipeline.get("mapper")
     failed = []

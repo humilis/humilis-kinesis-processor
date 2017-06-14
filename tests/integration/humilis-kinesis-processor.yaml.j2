@@ -65,6 +65,7 @@ humilis-kinesis-processor:
             kinesis_stream: {layer: streams, name: InputStream}
             filter: mypkg:input_filter
             mapper: mypkg.module:input_mapper
+            batch_mapper: mypkg:batch_mapper
             firehose_delivery_stream:
               # Multiple delivery streams for the input are supported
               - {layer: s3delivery, name: DeliveryStream3}

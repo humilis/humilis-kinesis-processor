@@ -63,6 +63,7 @@ def test_io_streams_put_get_record(
     assert not retrieved_ids.difference(put_ids)
     assert all("input_filter" not in ev and "input_mapper" in ev and
                "received_at" in ev for ev in retrieved_recs)
+    assert all("batch_mapped" in ev for ev in retrieved_recs)
 
 def test_set_get_state(
         kinesis, input_stream_name, output_stream_name):

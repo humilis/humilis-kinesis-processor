@@ -28,7 +28,7 @@ def produce_io_stream_callables():
             globs = dict(import_string=import_string, input=None, output=None)
             exec(
                 """
-{% set callables = ['mapper', 'filter', 'partition_key'] %}
+{% set callables = ['batch_mapper', 'mapper', 'filter', 'partition_key'] %}
 {% if meta_input %}
 input  = {
     {% for k, v in meta_input.items() %}
@@ -130,7 +130,7 @@ def produce_error_stream_callables():
             globs = dict(import_string=import_string, error=None)
             exec(
                 """
-{% set callables = ['mapper', 'filter', 'partition_key'] %}
+{% set callables = ['batch_mapper', 'mapper', 'filter', 'partition_key'] %}
 {% if meta_error %}
 error = {
     {% for k, v in meta_error.items() %}
