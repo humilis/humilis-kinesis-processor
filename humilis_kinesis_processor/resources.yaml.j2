@@ -335,7 +335,13 @@ resources:
                   {% for policy in iam_actions %}
                 - Effect: Allow
                   Action:
+                    {% if policy.action|is_list %}
+                    {% for action in policy.action %}
+                    - "{{action}}"
+                    {% endfor %}
+                    {% else %}
                     - "{{policy.action}}"
+                    {% endif %}
                   Resource: "{{policy.resource}}"
                   {% endfor %}
                   {% if globs.stateful %}
