@@ -29,7 +29,7 @@ meta:
 
         logs_destination_arn:
             description:
-                The ARN of a Kinesis stream or Lambda function to where 
+                The ARN of a Kinesis stream or Lambda function to where
                 Cloudwatch logs will be delivered.
             value:
 
@@ -45,6 +45,13 @@ meta:
                 topic to be created during the creation of this layer.
             value:
                 {{_env.name}}-{{_env.stage}}-{{_layer.name}}
+
+        alert_subscribers:
+            description:
+                A list of emails to suscribe to the alarms that will be pushed
+                to the sns topic of this environment
+            value:
+                []
 
         invocation_duration_alarm:
             description:
