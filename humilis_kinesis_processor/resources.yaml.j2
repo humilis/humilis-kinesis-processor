@@ -20,13 +20,20 @@
 {% endif %}
 resources:
     # Alarms
+    {% if sns_topic %}
     {% if not sns_topic.startswith("arn:") %}
     SnsTopic:
       Type: "AWS::SNS::Topic"
       Properties:
         TopicName: {{sns_topic}}
+        {% if alert_subscribers %}
+        Subscription:
+            {% for subscriber in alert_subscribers %}
+            - Endpoint: "{{subscriber}}"
+              Protocol: "email"
+            {% endfor %}
+        {% endif %}
     {% endif %}
-    {% if sns_topic %}
     ThrottlingAlarm:
       Type: "AWS::CloudWatch::Alarm"
       Properties:
@@ -39,7 +46,7 @@ resources:
           - {{sns_topic}}
           {% endif %}
         MetricName: Throttles
-        Namespace: AWS/Kinesis
+        Namespace: AWS/Lambda
         Statistic: Maximum
         Period: 60
         EvaluationPeriods: 1
@@ -153,7 +160,7 @@ resources:
         Code:
           S3Bucket: "{{lambda_function.s3bucket}}"
           S3Key: "{{lambda_function.s3key}}"
-        Runtime: "{{runtime}}" 
+        Runtime: "{{runtime}}"
         MemorySize: "{{memory_size}}"
         Description: "{{_layer.description}}"
         {# in seconds #}
@@ -368,7 +375,7 @@ resources:
         FunctionName:
           Ref: LambdaFunction
         StartingPosition:
-          {{starting_position}} 
+          {{starting_position}}
     {% endif %}
 
     # The DynamoDB tables that keep shard-specific state information
@@ -493,7 +500,7 @@ resources:
     {% if logs_destination_arn %}
     LogGroup:
         Type: "AWS::Logs::LogGroup"
-        Properties: 
+        Properties:
           LogGroupName:
             "Fn::Join":
               - ""
@@ -501,7 +508,7 @@ resources:
 
     LogsSubscription:
         Type: "AWS::Logs::SubscriptionFilter"
-        DependsOn: LogGroup 
+        DependsOn: LogGroup
         Properties:
           DestinationArn: "{{logs_destination_arn}}"
           FilterPattern: "{{logs_filter_pattern}}"

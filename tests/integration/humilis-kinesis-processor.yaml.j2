@@ -61,6 +61,8 @@ humilis-kinesis-processor:
           lambda_dependencies:
             - user-agents
             - mycode/mypkg
+          alert_subscribers:
+            - "arnaud@findhotel.net"
           input:
             kinesis_stream: {layer: streams, name: InputStream}
             filter: mypkg:input_filter
