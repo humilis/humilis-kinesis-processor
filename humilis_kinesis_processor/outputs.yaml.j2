@@ -1,5 +1,13 @@
 ---
 outputs:
+    {% if not dead_letter_queue_arn %}
+    DeadLetterQueueArn:
+        Description: ARN of the processor dead letter queue
+        Value:
+          "Fn::GetAtt":
+              - DeadLetterQueue
+              - Arn
+    {% endif %}
     LambdaFunctionArn:
         Description: The ARN of the Lambda function
         Value:

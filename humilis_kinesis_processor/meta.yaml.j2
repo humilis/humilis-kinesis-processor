@@ -4,6 +4,10 @@ meta:
         Processes events in a Kinesis stream
 
     parameters:
+        dead_letter_queue_arn:
+            description: ARN of the Dead Letter Queue
+            value:
+
         async_batch_size:
             description: A custom batch size for async invocations
             value:
