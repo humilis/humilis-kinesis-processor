@@ -166,15 +166,17 @@ resources:
           S3Bucket: "{{lambda_function.s3bucket}}"
           S3Key: "{{lambda_function.s3key}}"
         Runtime: "{{runtime}}" 
+        {% if has_dead_letter_queue or dead_letter_queue_arn %}
         DeadLetterConfig:
             {% if dead_letter_queue_arn %}
             TargetArn: "{{dead_letter_queue_arn}}"
-            {% elif has_dead_letter_queue %}
+            {% else %}
             TargetArn:
               "Fn::GetAtt":
                   - DeadLetterQueue
                   - Arn
             {% endif %}
+        {% endif %}
         MemorySize: "{{memory_size}}"
         Description: "{{_layer.description}}"
         {# in seconds #}
