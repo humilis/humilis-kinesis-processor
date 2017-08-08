@@ -153,8 +153,8 @@ resources:
               Ref: LambdaFunction
     {% endif %}
 
-    {% if not dead_letter_queue_arn %}
-    DeadLetterQueue: 
+    {% if has_dead_letter_queue and not dead_letter_queue_arn %}
+    DeadLetterQueue:
         Type: "AWS::SQS::Queue"
     {% endif %}
 
@@ -169,7 +169,7 @@ resources:
         DeadLetterConfig:
             {% if dead_letter_queue_arn %}
             TargetArn: "{{dead_letter_queue_arn}}"
-            {% else %}
+            {% elif has_dead_letter_queue %}
             TargetArn:
               "Fn::GetAtt":
                   - DeadLetterQueue
@@ -221,7 +221,7 @@ resources:
                   Resource:
                     {% if dead_letter_queue_arn %}
                     "{{dead_letter_queue_arn}}"
-                    {% else %}
+                    {% elif has_dead_letter_queue %}
                       "Fn::GetAtt":
                           - DeadLetterQueue
                           - Arn

@@ -4,6 +4,10 @@ meta:
         Processes events in a Kinesis stream
 
     parameters:
+        has_dead_letter_queue:
+            description: If set to false a DLQ will not be created if a queue ARN is not provided
+            value: yes
+
         dead_letter_queue_arn:
             description: ARN of the Dead Letter Queue
             value:
