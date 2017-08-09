@@ -1,6 +1,6 @@
 ---
 outputs:
-    {% if not dead_letter_queue_arn %}
+    {% if not dead_letter_queue_arn and has_dead_letter_queue %}
     DeadLetterQueueArn:
         Description: ARN of the processor dead letter queue
         Value:
