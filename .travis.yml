@@ -1,8 +1,6 @@
 language: python
 python:
-- '3.4'
+- '3.6'
 script:
 - make clean
 - make test
-#- make testi
-#- make delete
