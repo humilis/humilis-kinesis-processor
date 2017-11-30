@@ -11,7 +11,7 @@ HUMILIS_ENV := tests/integration/humilis-kinesis-processor
 
 # install AWS Lambda like virtualenv
 .lambda:
-	virtualenv .lambda -p python2.7
+	virtualenv .lambda -p python3.6
 	.lambda/bin/pip install -r requirements-lambda.txt
 
 # install dev dependencies, create layers directory
